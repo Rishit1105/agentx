@@ -17,6 +17,7 @@ from .config import ENV, ensure_config, paper_assertion, read_config, write_conf
 from .db import DB
 from .events import EventBus
 from .exchange.engine import ExchangeError, PaperExchange
+from .exchange.zerodha_clone import ZerodhaCloneMirror
 from .market import market
 from .costs import inr
 from .policy import Mandates, Policy
@@ -53,6 +54,8 @@ class Desk:
         self.policy = Policy(self.db, self.mandates, self.audit)
         self.exchange = PaperExchange(self.db, float(self.cfg["budget"]), self.cfg["meridian_costs"])
         self.exchange.on_fill(self._on_fill)
+        self.zerodha = ZerodhaCloneMirror(ENV["zerodha_clone_url"])
+        self.exchange.on_fill(self.zerodha.on_fill)
         self.sentinel = Sentinel(self)
         self.strategist = Strategist()
         self.journalist = Journalist(self)

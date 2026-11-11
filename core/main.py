@@ -108,6 +108,11 @@ async def positions():
     return {"positions": desk.exchange.positions(), "account": desk.exchange.account()}
 
 
+@app.get("/api/zerodha")
+async def zerodha_status():
+    return desk.zerodha.status()
+
+
 @app.get("/api/portfolio")
 async def portfolio():
     """One-call summary of the paper portfolio: account, holdings with weights and sectors, closed-trade statistics."""
