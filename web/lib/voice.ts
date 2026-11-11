@@ -11,6 +11,67 @@ import { useM } from "./store";
 
 export const levels = { speak: 0, mic: 0 };
 
+/* ─────────── one speaking tab across every browser: the server records which tab the user focused last
+   (WebSocket "voice_claim") and broadcasts "voice.owner"; every other tab stays silent and shows captions only ─────────── */
+const TAB_ID = Math.random().toString(36).slice(2);
+let speakerTab = false;                     // silent until the server confirms this tab owns the voice
+
+export function claimVoice() {
+  if (typeof window === "undefined" || document.hidden) return;   // background tabs never take the voice
+  const ws: WebSocket | undefined = (window as any).__meridianWs;
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: "voice_claim", client: TAB_ID }));
+}
+
+/** Called for every server "voice.owner" event. */
+export function setVoiceOwner(owner: string | null) {
+  const mine = owner === TAB_ID;
+  if (!mine && speakerTab) speaker.stop();  // another tab took over: go quiet immediately
+  speakerTab = mine;
+  if (owner === null && !document.hidden && document.hasFocus()) claimVoice();  // the speaking tab closed
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("focus", claimVoice);
+  window.addEventListener("pointerdown", claimVoice);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && document.hasFocus()) claimVoice(); });
+}
+
+export const isSpeakerTab = () => speakerTab;
+
+/* ─────────── one browser voice for the whole session, chosen after the voice list has loaded ─────────── */
+const VOICE_KEY = "meridian.voice";
+const MALE = /\b(male|david|george|mark|ravi|ryan|guy|james|daniel|thomas|fred|alex|prabhat|hemant)\b/i;
+const TIERS: ((v: SpeechSynthesisVoice) => boolean)[] = [
+  (v) => /en-IN/i.test(v.lang) && /female|heera|neerja|swara|kalpana|veena|india/i.test(v.name) && !MALE.test(v.name.replace(/female/i, "")),
+  (v) => /en-GB/i.test(v.lang) && /female|hazel|libby|sonia|serena|kate|susan|maisie/i.test(v.name),
+  (v) => /en-US/i.test(v.lang) && /female|zira|aria|jenny|samantha|ava|allison|emma|michelle/i.test(v.name),
+  (v) => /en-IN/i.test(v.lang) && !MALE.test(v.name),
+  (v) => /^en/i.test(v.lang) && !MALE.test(v.name),
+  (v) => /^en/i.test(v.lang),
+];
+let chosenVoice: SpeechSynthesisVoice | null = null;
+
+const voicesReady: Promise<void> = typeof window === "undefined" || !window.speechSynthesis ? Promise.resolve() :
+  new Promise((resolve) => {
+    const done = () => { if (speechSynthesis.getVoices().length) { pickVoice(); resolve(); } };
+    done();
+    speechSynthesis.addEventListener("voiceschanged", done);
+    setTimeout(() => { pickVoice(); resolve(); }, 2500);   // some browsers never fire voiceschanged
+  });
+
+function pickVoice() {
+  if (chosenVoice) return;
+  const voices = speechSynthesis.getVoices();
+  if (!voices.length) return;
+  let saved: string | null = null;
+  try { saved = localStorage.getItem(VOICE_KEY); } catch {}
+  chosenVoice = (saved && voices.find((v) => v.name === saved)) || TIERS.map((t) => voices.find(t)).find(Boolean) || null;
+  if (chosenVoice) try { localStorage.setItem(VOICE_KEY, chosenVoice.name); } catch {}
+}
+
+export const browserVoiceName = () => chosenVoice?.name ?? null;
+if (typeof window !== "undefined") (window as any).__meridianVoice = { isSpeakerTab: () => speakerTab, voice: () => chosenVoice?.name ?? null };
+
 class Speaker {
   ctx: AudioContext | null = null;
   analyser: AnalyserNode | null = null;
@@ -44,7 +105,7 @@ class Speaker {
   }
 
   say(id: string, n: number, engine: string, speech: string, rate = 1) {
-    if (this.muted) return;
+    if (this.muted || !speakerTab) return;     // only the active tab speaks
     if (engine === "browser") return this.browserSay(speech, rate);
     this.queue.set(id, { n, chunks: new Array(n), next: 0, text: speech });
     this.order.push(id);
@@ -59,7 +120,7 @@ class Speaker {
 
   async chunk(id: string, seq: number, url: string | null) {
     const q = this.queue.get(id);
-    if (!q) return;
+    if (!q || !speakerTab) return;
     if (!url) { q.chunks[seq] = null; this.pump(); return; }
     try {
       this.ensure();
@@ -89,14 +150,13 @@ class Speaker {
     src.start();
   }
 
-  browserSay(text: string, rate = 1) {
+  async browserSay(text: string, rate = 1) {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
+    await voicesReady;                         // never speak before the voice is chosen (avoids the OS default voice)
+    if (!speakerTab || this.muted) return;
     const u = new SpeechSynthesisUtterance(text);
-    const voices = speechSynthesis.getVoices();
-    const pick = voices.find((v) => /en-GB/i.test(v.lang) && /female|hazel|libby|sonia|serena|kate/i.test(v.name))
-      || voices.find((v) => /en-GB/i.test(v.lang)) || voices.find((v) => /^en/i.test(v.lang));
-    if (pick) u.voice = pick;
-    u.rate = rate; u.pitch = 0.92;
+    if (chosenVoice) { u.voice = chosenVoice; u.lang = chosenVoice.lang; }
+    u.rate = rate; u.pitch = 1.0;
     u.onstart = () => {
       this.setSpeaking(true);
       let t = 0;

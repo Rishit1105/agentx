@@ -23,6 +23,7 @@ desk = Desk()
 conductor = Conductor(desk)
 desk.conductor = conductor
 STARTED = time.time()
+VOICE_OWNER: dict = {"id": None}   # which browser tab currently speaks (see /ws voice_claim)
 
 
 async def ticker():
@@ -396,8 +397,10 @@ async def ws(sock: WebSocket):
         return
     await sock.accept()
     q = desk.bus.subscribe()
+    my_client = None          # the tab id this socket last claimed the voice with
     try:
         await sock.send_text(json.dumps({"type": "hello", "payload": desk.state()}, default=str))
+        await sock.send_text(json.dumps({"type": "voice.owner", "payload": {"owner": VOICE_OWNER["id"]}}))
         while True:
             get = asyncio.ensure_future(q.get())
             recv = asyncio.ensure_future(sock.receive_text())
@@ -416,9 +419,18 @@ async def ws(sock: WebSocket):
                     conductor.set_state("HALTED")
                 elif msg.get("type") == "barge_in":
                     desk.bus.emit("voice.barge_in", {}, actor="user", persist=False)
+                elif msg.get("type") == "voice_claim" and msg.get("client"):
+                    # exactly one tab, in any browser, speaks: the one the user focused last
+                    my_client = str(msg["client"])[:40]
+                    if VOICE_OWNER["id"] != my_client:
+                        VOICE_OWNER["id"] = my_client
+                        desk.bus.emit("voice.owner", {"owner": my_client}, actor="user", persist=False)
     except (WebSocketDisconnect, RuntimeError):
         pass
     finally:
+        if my_client and VOICE_OWNER["id"] == my_client:     # the speaking tab closed: let the next tab claim
+            VOICE_OWNER["id"] = None
+            desk.bus.emit("voice.owner", {"owner": None}, actor="user", persist=False)
         desk.bus.unsubscribe(q)
 
 

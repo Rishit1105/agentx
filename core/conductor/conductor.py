@@ -97,8 +97,7 @@ class Conductor:
         speech = speakable(text, set(self.desk.market.symbols()))
         parts = sentences(speech) or [speech]
         await tts.health()
-        cached = [tts.cached(p, speed) for p in parts]
-        engine = "omnivoice" if (all(cached) or tts.live_ok()) else "browser"
+        engine = tts.engine()   # one engine for every reply: never mix cached OmniVoice clips with browser speech
         self.desk.db.execute("INSERT INTO turns(ts,role,text) VALUES(?,?,?)", (clock.now().isoformat(), "meridian", text))
         self.history.append({"role": "assistant", "content": text})
         self.history = self.history[-20:]

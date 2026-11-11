@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import hashlib
 import time
 
@@ -50,6 +51,17 @@ class TTS:
         except Exception:
             self.up = False
         return self.up
+
+    def engine(self) -> str:
+        """The single voice used for every reply. VOICE_ENGINE=auto (default) picks OmniVoice only when it can speak
+        every sentence live (RTF < 0.6, i.e. a GPU); otherwise the browser voice speaks everything. 'omnivoice' or
+        'browser' force one (forced OmniVoice still falls back to the browser if the service is down)."""
+        mode = os.getenv("VOICE_ENGINE", "auto").lower()
+        if mode == "browser":
+            return "browser"
+        if mode == "omnivoice":
+            return "omnivoice" if self.up else "browser"
+        return "omnivoice" if self.live_ok() else "browser"
 
     def live_ok(self) -> bool:
         """Use live OmniVoice only when it is fast enough on this machine (RTF < 0.6)."""

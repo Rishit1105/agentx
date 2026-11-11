@@ -8,7 +8,7 @@ import { Activity, BookText, CandlestickChart, FlaskConical, LayoutGrid, Pause, 
 import clsx from "clsx";
 import { api, WS_URL } from "@/lib/api";
 import { fmt, useM } from "@/lib/store";
-import { speaker } from "@/lib/voice";
+import { browserVoiceName, claimVoice, isSpeakerTab, setVoiceOwner, speaker } from "@/lib/voice";
 import HaltLever from "./HaltLever";
 import AgentDrawer from "./AgentDrawer";
 import MandateSheet from "./MandateSheet";
@@ -32,12 +32,13 @@ function useSocket() {
     let ws: WebSocket | null = null, alive = true, retry = 0, timer: any;
     const open = () => {
       ws = new WebSocket(WS_URL);
-      ws.onopen = () => { retry = 0; set({ connected: true }); };
+      ws.onopen = () => { retry = 0; set({ connected: true }); claimVoice(); };
       ws.onclose = () => { set({ connected: false }); if (alive) timer = setTimeout(open, Math.min(8000, 500 * 2 ** retry++)); };
       ws.onmessage = (m) => {
         try {
           const e = JSON.parse(m.data);
           apply(e);
+          if (e.type === "voice.owner") setVoiceOwner(e.payload.owner ?? null);
           if (e.type === "voice.say") speaker.say(e.payload.id, e.payload.n, e.payload.engine, e.payload.speech, e.payload.speed);
           if (e.type === "tts.chunk") speaker.chunk(e.payload.id, e.payload.seq, e.payload.url);
           if (e.type === "kill.state" && e.payload.state === "HALTING") speaker.stop();
@@ -133,7 +134,8 @@ function TopBar() {
         title="Rendered from the server's boot-time paper-only assertion, not a client constant">
         <span className="live-dot" style={{ background: paper?.ok ? "#3ddc97" : "#ff5c6c" }} />PAPER ONLY</span>
       <button className="h-8 w-8 grid place-items-center rounded-full border border-line-2 text-muted hover:text-ink"
-        onClick={() => { const m = !muted; setMuted(m); speaker.muted = m; if (m) speaker.stop(); }} aria-label={muted ? "Unmute voice" : "Mute voice"}>
+        onClick={() => { const m = !muted; setMuted(m); speaker.muted = m; if (m) speaker.stop(); }} aria-label={muted ? "Unmute voice" : "Mute voice"}
+        title={`${muted ? "Voice muted" : isSpeakerTab() ? "Speaking in this tab" : "Another Meridian tab is speaking (click here to take over)"} · ${browserVoiceName() ?? "voice loading"}`}>
         {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}</button>
       <span title={connected ? "Connected to core" : "Reconnecting…"} className={connected ? "text-mint" : "text-coral"}>
         {connected ? <Wifi size={16} /> : <WifiOff size={16} />}</span>
