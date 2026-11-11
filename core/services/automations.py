@@ -11,7 +11,9 @@ Triggers                                    Actions
   day_pnl   day P&L at or below ₹X            watch      add a symbol to the Entry Timer watch list
   risk_used committed max-loss ≥ X % of limit plan       plan a trade on a symbol (needs your yes)
   scan_hits a scan finds ≥ N breakouts        flatten    close one symbol, or all positions
-                                              halt       the kill switch
+  position_r an open position reaches +N R    halt       the kill switch
+                                              breakeven  raise the stop to the entry price (tighten only)
+                                              trail      raise the stop to lock in a fraction of the open R
                                               summary    speak the day's P&L, trades and risk used
 """
 from __future__ import annotations
@@ -24,8 +26,8 @@ from typing import Any
 
 from ..clock import clock
 
-TRIGGERS = {"time", "every", "price", "day_pnl", "risk_used", "scan_hits"}
-ACTIONS = {"say", "briefing", "scan", "watch", "plan", "flatten", "halt", "summary"}
+TRIGGERS = {"time", "every", "price", "day_pnl", "risk_used", "scan_hits", "position_r"}
+ACTIONS = {"say", "briefing", "scan", "watch", "plan", "flatten", "halt", "summary", "breakeven", "trail"}
 ENTRY_ACTIONS = {"scan", "watch", "plan"}       # need an armed desk
 MARKET_OPEN, MARKET_CLOSE = "09:15", "15:30"
 
@@ -59,6 +61,12 @@ TEMPLATES: list[dict] = [
     {"key": "momentum_plan", "name": "Momentum day planner", "icon": "zap",
      "blurb": "When a scan finds 20 or more breakouts, plan the best one. You still say yes before anything is placed.",
      "trigger": {"type": "scan_hits", "min": 20}, "action": {"type": "scan", "then": "plan"}, "cooldown_min": 45},
+    {"key": "breakeven_guard", "name": "Breakeven guard", "icon": "shield",
+     "blurb": "When an open trade reaches +1R, move its stop up to the entry. A winner can't turn into a loser.",
+     "trigger": {"type": "position_r", "r": 1.0}, "action": {"type": "breakeven"}, "cooldown_min": 0},
+    {"key": "trail_half", "name": "Trailing lock-in", "icon": "zap",
+     "blurb": "Once a trade is +1.5R, trail the stop to lock in half of the open profit. Stops only ever move up.",
+     "trigger": {"type": "position_r", "r": 1.5}, "action": {"type": "trail", "lock": 0.5}, "cooldown_min": 5},
     {"key": "pre_close", "name": "Pre-close wrap-up", "icon": "moon",
      "blurb": "At 15:00, speak the day's P&L, trades and risk used, fifteen minutes before flat-by.",
      "trigger": {"type": "time", "at": "15:00"}, "action": {"type": "summary"}, "cooldown_min": 0},
@@ -113,6 +121,11 @@ def validate(trigger: dict, action: dict) -> tuple[dict, dict]:
         if n < 1:
             raise AutomationError("scan-hits trigger needs min ≥ 1")
         t["min"] = n
+    elif t["type"] == "position_r":
+        r = trigger.get("r")
+        if not isinstance(r, (int, float)) or not 0.25 <= r <= 10:
+            raise AutomationError("position-R trigger needs r between 0.25 and 10")
+        t["r"] = float(r)
 
     a = {"type": action["type"]}
     if a["type"] == "say":
@@ -134,6 +147,11 @@ def validate(trigger: dict, action: dict) -> tuple[dict, dict]:
         a["symbol"] = sym
     elif a["type"] == "flatten":
         a["symbol"] = str(action.get("symbol") or "all").upper().strip() or "ALL"
+    elif a["type"] == "trail":
+        lock = action.get("lock", 0.5)
+        if not isinstance(lock, (int, float)) or not 0.1 <= lock <= 0.9:
+            raise AutomationError("trail lock must be between 0.1 and 0.9 of the open profit")
+        a["lock"] = float(lock)
     return t, a
 
 
@@ -266,6 +284,9 @@ class Automations:
             return pnl <= t["value"], {"day_pnl": pnl, "level": t["value"]}
         if t["type"] == "risk_used":
             return ctx["risk"]["pct"] >= t["pct"], {"risk_pct": ctx["risk"]["pct"], "level": t["pct"]}
+        if t["type"] == "position_r":
+            due = [p for p in ctx.get("positions", []) if (p.get("r_now") or 0) >= t["r"] and self._stop_target(r_rule=rule, p=p)]
+            return bool(due), {"symbols": [p["symbol"] for p in due], "level": t["r"]}
         if t["type"] == "scan_hits":
             scan = ctx.get("scan")
             if not scan or scan.get("as_of") == self._last_scan_seen:
@@ -282,7 +303,7 @@ class Automations:
         if not rules:
             return
         ctx = {"hhmm": clock.hhmm(), "account": self.desk.exchange.account(), "risk": self.desk.risk_used(),
-               "scan": self.desk.last_scan}
+               "scan": self.desk.last_scan, "positions": self.desk.exchange.positions()}
         edge_types = {"price", "day_pnl", "risk_used"}
         for r in rules:
             if r["id"] in self._busy:
@@ -312,10 +333,22 @@ class Automations:
         if not r:
             raise AutomationError("no such automation")
         ctx = {"hhmm": clock.hhmm(), "account": self.desk.exchange.account(), "risk": self.desk.risk_used(),
-               "scan": self.desk.last_scan}
+               "scan": self.desk.last_scan, "positions": self.desk.exchange.positions()}
         _, facts = self._condition(r, ctx)
         self._busy.add(aid)
         return await self._fire(r, {**facts, "manual": True}, ctx)
+
+    def _stop_target(self, r_rule: dict, p: dict) -> float | None:
+        """The stop a breakeven / trail rule wants for position p, or None if the working stop is already there."""
+        a = r_rule["action"]
+        if a["type"] not in ("breakeven", "trail"):
+            return None
+        entry, last, work = p["avg_price"], p.get("last"), p.get("working_stop")
+        if work is None or last is None:
+            return None
+        want = entry if a["type"] == "breakeven" else entry + (last - entry) * a.get("lock", 0.5)
+        want = round(want, 2)
+        return want if want > work + 0.01 and want < last else None
 
     # ------------------------------------------------------------------ actions
     def _fill(self, text: str, facts: dict, ctx: dict) -> str:
@@ -397,6 +430,24 @@ class Automations:
                     if out.get("ok"):
                         done.append(s)
                 detail = {"flattened": done}
+            elif a["type"] in ("breakeven", "trail"):
+                moved, notes = [], []
+                for p in ctx.get("positions") or d.exchange.positions():
+                    new = self._stop_target(r_rule=rule, p=p)
+                    if not new or (facts.get("symbols") and p["symbol"] not in facts["symbols"]):
+                        continue
+                    try:
+                        out = d.exchange.raise_stop(p["symbol"], new, reason=f"automation: {rule['name']}")
+                        moved.append(out)
+                    except Exception as e:     # stop already higher, price moved below, etc.
+                        notes.append(f"{p['symbol']}: {e}")
+                if moved:
+                    d.audit.append("stop.raised", by="automation", rule=rule["name"], moves=moved)
+                    d.bus.emit("order.update", {"stop_raised": moved}, actor="exchange")
+                    if cond:
+                        await cond.say("; ".join(f"{m['symbol']} stop raised from {m['from']} to {m['to']}" for m in moved)
+                                       + ". Stops only move up.", kind="alert")
+                ok, detail = bool(moved) or not notes, {"moved": moved, "notes": notes}
             elif a["type"] == "halt":
                 res = await d.sentinel.halt("automation", actor="automations",
                                             detail={"rule": rule["name"], **{k: v for k, v in facts.items()}})
@@ -431,6 +482,7 @@ def describe(t: dict, a: dict) -> str:
         "day_pnl": lambda: f"When day P&L ≤ −₹{abs(t.get('value')):,.0f}",
         "risk_used": lambda: f"When ≥{t.get('pct'):.0f}% of risk is used",
         "scan_hits": lambda: f"When a scan finds ≥{t.get('min')} breakouts",
+        "position_r": lambda: f"When an open trade reaches +{t.get('r'):g}R",
     }[t["type"]]()
     then = {
         "say": lambda: f"say “{a.get('text')}”",
@@ -442,5 +494,7 @@ def describe(t: dict, a: dict) -> str:
         "plan": lambda: f"plan a trade on {a.get('symbol')}",
         "flatten": lambda: "flatten all positions" if a.get("symbol") in ("ALL", None) else f"flatten {a.get('symbol')}",
         "halt": lambda: "halt the desk",
+        "breakeven": lambda: "move the stop to breakeven",
+        "trail": lambda: f"trail the stop to lock {a.get('lock', 0.5) * 100:.0f}% of open profit",
     }[a["type"]]()
     return f"{when} → {then}"
