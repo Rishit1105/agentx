@@ -41,7 +41,7 @@ export default function Hero() {
         <motion.div aria-hidden style={{ scale: sceneScale, opacity: sceneOpacity }} className="absolute inset-0 will-change-transform">
           {/* CSS stand-in while three.js loads (and if WebGL is unavailable) */}
           <div
-            className="absolute left-1/2 top-[30%] h-[min(42vw,190px)] w-[min(42vw,190px)] -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity duration-700 lg:left-[70%] lg:top-1/2 lg:h-[220px] lg:w-[220px]"
+            className="absolute left-1/2 top-[23%] h-[min(42vw,190px)] w-[min(42vw,190px)] -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity duration-700 lg:left-[70%] lg:top-1/2 lg:h-[220px] lg:w-[220px]"
             style={{
               opacity: ready ? 0 : 1,
               background: "radial-gradient(circle at 50% 50%, rgba(79,211,240,0.06) 0 55%, rgba(79,211,240,0.38) 72%, transparent 74%)",

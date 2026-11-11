@@ -244,7 +244,7 @@ export default function HeroScene({ progress, onReady }: { progress: MotionValue
       const visW = visH * camera.aspect;
       // desktop: the instrument sits to the right of the headline; phones: above it
       shiftX = desktop ? visW * 0.2 : 0;
-      shiftY = desktop ? 0 : visH * 0.2;
+      shiftY = desktop ? 0 : visH * 0.27;
       if (reduced) frame(0);
     };
 
@@ -273,8 +273,8 @@ export default function HeroScene({ progress, onReady }: { progress: MotionValue
       mouse.y += (mouse.ty - mouse.y) * 0.04;
 
       root.position.set(shiftX * (1 - e), shiftY * (1 - e), 0);
-      camera.position.set(root.position.x + mouse.x * 1.1 * (1 - e), root.position.y - mouse.y * 0.8 * (1 - e), baseZ - (baseZ - 1.35) * e);
-      camera.lookAt(root.position.x, root.position.y, 0);
+      camera.position.set(mouse.x * 1.1 * (1 - e), -mouse.y * 0.8 * (1 - e), baseZ - (baseZ - 1.35) * e);
+      camera.lookAt(0, 0, 0);
 
       orbUniforms.uTime.value = t;
       orbUniforms.uBoost.value = e * 0.8;
