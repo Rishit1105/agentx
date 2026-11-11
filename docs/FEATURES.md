@@ -30,6 +30,7 @@ reach a language model.
 
 | Say | What happens |
 | --- | --- |
+| "Move my stop to breakeven" | Raises the stop of open positions to their entry (tighten only) |
 | "What if I buy 300 Infosys?" | What-if simulator: max loss, binding limit, max size, charges, gap scenario. No ticket. |
 | "What are my guardrails?" | Limits and how much of today's risk budget is committed |
 | "Lower my daily loss limit to 5000" | Tightens it (voice can only tighten) |
@@ -48,7 +49,7 @@ reach a language model.
 | "List my automations" | Reads the active rules |
 
 Templates on the Automations screen: Opening-bell briefing, Breakout radar, Soft loss guard, Risk budget warning,
-Price alert, Momentum day planner, Pre-close wrap-up. Automations can brief, scan, plan, flatten and halt; they never
+Price alert, Momentum day planner, Breakeven guard, Trailing lock-in, Pre-close wrap-up. Automations can brief, scan, plan, flatten and halt; they never
 place an order and never replace a ticket that is waiting for your "yes".
 
 ## Screens
@@ -56,10 +57,12 @@ place an order and never replace a ticket that is waiting for your "yes".
 | Route | Screen |
 | --- | --- |
 | `/` | Landing page |
-| `/deck` | Command Deck: Orb, agent Orrery, risk reservoir, ticket, chat |
-| `/studio` | Trade Studio: candles, Time Machine fan, sizing ledger, gate list, ticket |
+| `/deck` | Command Deck: Orb, agent Orrery, Sundial, sector heatmap, risk reservoir, ticket, breakeven button, chat |
+| `/markets` | NIFTY 500 sector heatmap, breadth, top gainers and losers |
+| `/studio` | Trade Studio: candles, Time Machine fan, What-if simulator, sizing ledger, gate list, ticket |
 | `/backtest` | Backtest Lab and PDF export |
 | `/portfolio` | Paper positions and P&L |
+| `/review` | Trade Review: MAE/MFE post-mortem, charges breakdown, end-of-day PDF |
 | `/ledger` | Discipline Scorecard and every Story with its evidence |
 | `/automations` | Rule builder, templates, voice rules, activity log |
 | `/guardrails` | Limits, five defence layers, kill switch, audit-chain verification |

@@ -15,6 +15,8 @@ the `x-meridian-token` header. Live events stream over `ws://localhost:8000/ws`.
 | GET | `/api/bars/{symbol}`, `/api/universe` | 5-minute bars, the NSE universe |
 | GET | `/api/timemachine`, `/api/strategy` | last Time Machine verdict, Strategist choice |
 | GET | `/api/market/map` | sector heatmap, breadth, gainers/losers, mood |
+| GET | `/api/review` | closed trades with MAE/MFE in R, verdicts, charges breakdown |
+| GET | `/api/report/day.pdf` | end-of-day report PDF |
 | GET | `/api/scorecard` | Discipline Scorecard (score, grade, five pillars, counts) |
 | GET | `/api/audit`, `/api/audit/verify` | hash-chained audit log and its verification |
 
@@ -28,6 +30,7 @@ the `x-meridian-token` header. Live events stream over `ws://localhost:8000/ws`.
 | POST | `/api/flatten/{symbol}` | | close a position |
 | POST | `/api/kill`, `/api/rearm` | `{reason}` for rearm | kill switch / re-arm |
 | POST | `/api/limits` | `{key: value}` | tighten limits (loosening is refused) |
+| POST | `/api/positions/{symbol}/stop` | `{stop}` or `{to:"breakeven"}` | raise a stop (tighten only) |
 | POST | `/api/whatif` | `{symbol, qty?, stop?, entry?, gap_pct?}` | risk simulation, no ticket |
 | GET/POST | `/api/backtest/{symbol}` | | run or fetch a backtest |
 | GET | `/api/report/{symbol}.pdf` | | backtest report PDF |
@@ -42,9 +45,9 @@ the `x-meridian-token` header. Live events stream over `ws://localhost:8000/ws`.
 | POST | `/api/automations/{id}/run` | runs the action now |
 
 Triggers: `{type:"time", at:"HH:MM"}`, `{type:"every", minutes}`, `{type:"price", symbol, op:"above"|"below", price}`,
-`{type:"day_pnl", value:<negative ₹>}`, `{type:"risk_used", pct}`, `{type:"scan_hits", min}`.
+`{type:"day_pnl", value:<negative ₹>}`, `{type:"risk_used", pct}`, `{type:"scan_hits", min}`, `{type:"position_r", r}`.
 Actions: `say {text}`, `briefing`, `summary`, `scan {then: notify|watch|plan}`, `watch {symbol}`, `plan {symbol}`,
-`flatten {symbol|ALL}`, `halt`.
+`flatten {symbol|ALL}`, `halt`, `breakeven`, `trail {lock}`.
 
 ## Replay
 | Method | Path | Body |

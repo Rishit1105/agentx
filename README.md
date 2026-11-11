@@ -77,6 +77,13 @@ See [docs/FEATURES.md](docs/FEATURES.md) for the voice command catalogue and [do
   when charges would eat the trade. It never creates a ticket.
 * **Market map** (`core/services/marketmap.py`, `GET /api/market/map`, or *"how are sectors doing?"*): NIFTY 500 sector
   heatmap, value-weighted sector moves, advancers/decliners and a breadth mood, cached per virtual minute.
+* **Breakeven guard and trailing lock-in** (automation templates, `POST /api/positions/{symbol}/stop`, or *"move my stop to
+  breakeven"*): stops only ever move up; R stays measured from the original stop.
+* **Trade Review** (`core/services/review.py`, screen `/review`): post-mortem of every round trip with MAE/MFE in R on the real
+  bars, a plain verdict ("reached +1.2R before reversing: a breakeven guard would have saved it"), an Indian charges
+  breakdown and a downloadable end-of-day PDF (`GET /api/report/day.pdf`).
+* **Markets** (screen `/markets`, also on the Deck): the NIFTY 500 sector heatmap with drill-down to stocks.
+* **Light "paper & ink" theme**, a labelled navigation rail (9 screens) and a What-if panel in Trade Studio.
 * **Faster tick loop**: trader/ JSON files are parsed once per change (mtime cache) instead of on every 0.5 s tick.
 * **Landing page** at `/` (the desk moved to `/deck`): 3D Conductor orb, a scroll-driven product demo, safety,
   automations and backtest sections, and a zoom transition into the desk.
@@ -122,7 +129,7 @@ Then open http://localhost:3000, press play on the NSE REPLAY transport, and try
 ## Tests
 
 ```bash
-.venv/Scripts/python -m pytest                      # 82 tests: policy, audit chain, exchange, costs, validator, voice, grammar, India edition
+.venv/Scripts/python -m pytest                      # 93 tests: policy, audit chain, exchange, costs, validator, voice, grammar, India edition
 python -m unittest discover -s vendor/day-trader-skill/tests   # upstream: 315 tests
 .venv/Scripts/python scripts/e2e_replay.py           # 25-check acceptance run against a running core
 ```
