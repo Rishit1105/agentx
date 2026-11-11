@@ -13,3 +13,6 @@ web/.next/
 .env
 .claude/settings.local.json
 *.log
+# Zerodha clone (apna-college/Zerodha) wired to Meridian
+zerodha-clone/**/node_modules/
+zerodha-clone/**/build/
