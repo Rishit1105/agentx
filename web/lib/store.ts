@@ -131,6 +131,11 @@ export const useM = create<S>((set, get) => ({
       case "alert.ring":
         s.toast({ tone: "warn", title: "Alert rang", body: p.text || p.message || JSON.stringify(p).slice(0, 120) });
         break;
+      case "automation.run":
+        get().toast({ tone: p.ok ? "info" : "warn", title: `Automation · ${p.name}`,
+          body: p.detail?.said || p.detail?.skipped || p.detail?.error ||
+            (p.detail?.top ? `Top breakouts: ${p.detail.top.slice(0, 3).join(", ")}` : undefined) });
+        break;
       case "sentinel.pause":
         if (p.paused) s.toast({ tone: "warn", title: "Entries paused", body: p.reason });
         refetch();
