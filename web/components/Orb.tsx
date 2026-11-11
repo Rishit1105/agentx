@@ -6,8 +6,8 @@ import type { VoiceState } from "@/lib/types";
 /** The face of the Conductor. A luminous core, a radial waveform ring, and a "meridian" line that opens like an
  *  eye when listening, shimmers while thinking, pulses to speech energy, turns gold to confirm, coral when halted. */
 const PALETTE: Record<string, [number, number, number]> = {
-  idle: [56, 225, 255], listening: [56, 225, 255], thinking: [139, 124, 255], speaking: [56, 225, 255],
-  awaiting_confirm: [255, 181, 71], halted: [255, 92, 108],
+  idle: [10, 126, 164], listening: [10, 126, 164], thinking: [110, 86, 207], speaking: [10, 126, 164],
+  awaiting_confirm: [183, 121, 11], halted: [229, 72, 77],
 };
 
 export default function Orb({ state, size = 300 }: { state: VoiceState; size?: number }) {
@@ -43,7 +43,7 @@ export default function Orb({ state, size = 300 }: { state: VoiceState; size?: n
 
       // outer halo
       const halo = g.createRadialGradient(cx, cy, R * 0.6, cx, cy, R * 2.1);
-      halo.addColorStop(0, `rgba(${r},${gg},${b},${0.20 + energy * 0.25})`);
+      halo.addColorStop(0, `rgba(${r},${gg},${b},${0.16 + energy * 0.22})`);
       halo.addColorStop(1, `rgba(${r},${gg},${b},0)`);
       g.fillStyle = halo;
       g.beginPath(); g.arc(cx, cy, R * 2.1, 0, Math.PI * 2); g.fill();
@@ -86,9 +86,9 @@ export default function Orb({ state, size = 300 }: { state: VoiceState; size?: n
       // core sphere
       const core = g.createRadialGradient(cx - R * 0.3, cy - R * 0.35, R * 0.05, cx, cy, R * (1 + breath));
       core.addColorStop(0, `rgba(255,255,255,0.95)`);
-      core.addColorStop(0.18, `rgba(${Math.min(255, r + 120)},${Math.min(255, gg + 60)},${Math.min(255, b + 30)},0.9)`);
-      core.addColorStop(0.55, `rgba(${r},${gg},${b},0.55)`);
-      core.addColorStop(1, `rgba(${r * 0.15},${gg * 0.15},${b * 0.2},0.95)`);
+      core.addColorStop(0.2, `rgba(${Math.round(r * 0.3 + 175)},${Math.round(gg * 0.3 + 175)},${Math.round(b * 0.3 + 178)},1)`);
+      core.addColorStop(0.62, `rgba(${r},${gg},${b},1)`);
+      core.addColorStop(1, `rgba(${Math.round(r * 0.45)},${Math.round(gg * 0.45)},${Math.round(b * 0.5)},1)`);
       g.fillStyle = core;
       g.beginPath(); g.arc(cx, cy, R * (1 + breath + energy * 0.06), 0, Math.PI * 2); g.fill();
       // inner rim
@@ -100,7 +100,7 @@ export default function Orb({ state, size = 300 }: { state: VoiceState; size?: n
       const open = R * 0.62 * eye;
       g.save();
       g.beginPath(); g.arc(cx, cy, R * 0.98, 0, Math.PI * 2); g.clip();
-      g.fillStyle = `rgba(3,8,14,${0.55 * eye})`;
+      g.fillStyle = `rgba(20,24,31,${0.42 * eye})`;
       g.beginPath();
       g.moveTo(cx - R, cy);
       g.quadraticCurveTo(cx, cy - open * 1.4, cx + R, cy);
@@ -130,5 +130,7 @@ export default function Orb({ state, size = 300 }: { state: VoiceState; size?: n
     return () => cancelAnimationFrame(raf);
   }, [size]);
 
-  return <canvas ref={ref} style={{ width: size, height: size }} aria-hidden />;
+  // the CSS sphere underneath is a fallback: the circle stays visible even before the first canvas frame paints
+  return <canvas ref={ref} aria-hidden style={{ width: size, height: size, borderRadius: "50%",
+    background: "radial-gradient(circle closest-side at 50% 50%, #b9dfea 0, #0a7ea4 34%, #06607e 52%, rgba(10,126,164,0.12) 54%, transparent 70%)" }} />;
 }
