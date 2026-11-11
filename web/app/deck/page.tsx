@@ -1,11 +1,14 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowUpRight, Bot, Check, Clock3, Loader2, Sparkles } from "lucide-react";
+import { ArrowUpRight, Bot, Check, Clock3, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 import clsx from "clsx";
 import Orb from "@/components/Orb";
 import Orrery from "@/components/Orrery";
+import SectorHeatmap from "@/components/SectorHeatmap";
 import { CaptionRibbon, CommandBar, PriceLadder, RiskReservoir, Sundial } from "@/components/Instruments";
+import { api } from "@/lib/api";
 import { useSize, useStories } from "@/lib/hooks";
 import { fmt, useM } from "@/lib/store";
 import { ticketAction } from "@/lib/ticket";
@@ -57,6 +60,28 @@ function TicketCard() {
   );
 }
 
+function BreakevenButton({ symbol, atBreakeven }: { symbol: string; atBreakeven: boolean }) {
+  const [busy, setBusy] = useState(false);
+  if (atBreakeven) return <span className="chip !h-6 !text-mint">Stop at breakeven</span>;
+  const go = async () => {
+    setBusy(true);
+    try {
+      const r = await api.post(`/api/positions/${symbol}/stop`, { to: "breakeven" });
+      useM.getState().toast({ tone: "good", title: "Stop raised", body: `${symbol} stop ${r.from} → ${r.to}` });
+    } catch (e) {
+      useM.getState().toast({ tone: "warn", title: "Not yet", body: (e as Error).message });
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <button className="btn !h-7 !px-2.5 text-[11.5px]" onClick={go} disabled={busy}
+      title="Raise the stop to the entry price. Stops only move up.">
+      <ShieldCheck size={13} />Breakeven
+    </button>
+  );
+}
+
 export default function Deck() {
   const st = useM((s) => s.st);
   const voice = useM((s) => s.voice);
@@ -77,6 +102,7 @@ export default function Deck() {
         {st?.watch && Object.keys(st.watch).length > 0 && (
           <div className="mt-3 text-[12px] text-amber">Watching {Object.keys(st.watch).join(", ")} bar by bar</div>
         )}
+        <div className="mt-4 pt-4 border-t border-line"><SectorHeatmap compact /></div>
       </section>
 
       {/* centre: Orb inside the Orrery */}
@@ -112,7 +138,15 @@ export default function Deck() {
       <aside className="flex flex-col gap-4 min-h-0">
         <section className="panel p-4"><RiskReservoir /></section>
         <TicketCard />
-        {pos && <section className="panel p-4"><div className="label mb-3">Open position</div><PriceLadder p={pos} /></section>}
+        {pos && (
+          <section className="panel p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="label">Open position</span>
+              <BreakevenButton symbol={pos.symbol} atBreakeven={Boolean((pos as { at_breakeven?: boolean }).at_breakeven)} />
+            </div>
+            <PriceLadder p={pos} />
+          </section>
+        )}
         <section className="panel p-4">
           <div className="label">Paper balance</div>
           <div className="display text-[30px] num mt-1">{fmt.usd(st?.account.equity)}</div>
