@@ -38,8 +38,8 @@ function SplitToggle({ on, set }: { on: boolean; set: (v: boolean) => void }) {
 }
 
 const PHASE: Record<string, [string, string]> = {
-  pre: ["Pre-open", "#7d8a9c"], opening_range: ["Opening range", "#ffb547"], entry_window: ["Entry window", "#3ddc97"],
-  no_entries: ["No new entries", "#ffb547"], flat_by: ["Flat-by", "#ff5c6c"], closed: ["Closed", "#7d8a9c"],
+  pre: ["Pre-open", "#646b76"], opening_range: ["Opening range", "#b7790b"], entry_window: ["Entry window", "#0e9f6e"],
+  no_entries: ["No new entries", "#b7790b"], flat_by: ["Flat-by", "#e5484d"], closed: ["Closed", "#646b76"],
 };
 
 function useSocket() {
@@ -72,12 +72,12 @@ function ClockChip() {
   const clock = useM((s) => s.st?.clock);
   const replay = useM((s) => s.st?.replay);
   if (!clock) return <div className="skeleton h-7 w-56" />;
-  const [ph, col] = PHASE[clock.phase] || [clock.phase, "#7d8a9c"];
+  const [ph, col] = PHASE[clock.phase] || [clock.phase, "#646b76"];
   const ctl = (b: any) => api.post("/api/replay/control", b).catch(() => {});
   return (
     <div className="flex items-center gap-2 shrink-0">
       <div className="chip !h-8 !px-3 gap-2.5 whitespace-nowrap shrink-0" title={replay ? `Replay of the real NSE session of ${replay.date} (NIFTY 500, 5-minute bars)` : ""}>
-        <span className="live-dot" style={{ background: clock.paused ? "#7d8a9c" : col }} />
+        <span className="live-dot" style={{ background: clock.paused ? "#646b76" : col }} />
         <span className="num text-[13px] text-ink">{clock.now.slice(11, 19)}</span>
         <span className="hidden sm:inline text-faint">IST</span>
         <span className="hidden lg:inline text-[11.5px]" style={{ color: col }}>{ph}</span>
@@ -85,13 +85,13 @@ function ClockChip() {
       {clock.mode === "replay" ? (
         <div className="flex items-center rounded-full border border-line-2 h-8 overflow-hidden shrink-0 whitespace-nowrap">
           <span className="hidden 2xl:inline px-2.5 text-[10.5px] tracking-[0.14em] text-amber display">NSE REPLAY {clock.date.slice(8)}/{clock.date.slice(5, 7)}</span>
-          <button className="h-8 w-8 grid place-items-center hover:bg-white/5 text-ink-2" aria-label={clock.paused ? "Play" : "Pause"}
+          <button className="h-8 w-8 grid place-items-center hover:bg-ink/5 text-ink-2" aria-label={clock.paused ? "Play" : "Pause"}
             onClick={() => ctl({ paused: !clock.paused })}>{clock.paused ? <Play size={14} /> : <Pause size={14} />}</button>
           {[1, 10, 30, 60].map((sp) => (
             <button key={sp} onClick={() => ctl({ speed: sp, paused: false })}
               className={clsx("hidden xl:block h-8 px-1.5 num text-[11px] hover:text-ink", clock.speed === sp && !clock.paused ? "text-cyan" : "text-muted")}>{sp}×</button>
           ))}
-          <button className="hidden md:grid h-8 w-8 place-items-center hover:bg-white/5 text-muted" title="Skip 15 minutes"
+          <button className="hidden md:grid h-8 w-8 place-items-center hover:bg-ink/5 text-muted" title="Skip 15 minutes"
             onClick={() => { const [h, m] = clock.hhmm.split(":").map(Number); const t = h * 60 + m + 15;
               ctl({ jump: `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}` }); }}><FastForward size={14} /></button>
         </div>
@@ -109,12 +109,12 @@ function ModeSwitch() {
     try { await api.post("/api/mode", { mode: m }); } catch (e: any) { useM.getState().toast({ tone: "warn", title: "Mode", body: e.message }); }
   };
   return (
-    <div className="relative hidden md:flex shrink-0 h-8 rounded-full border border-line-2 p-0.5 bg-black/30 whitespace-nowrap" role="radiogroup" aria-label="Operating mode">
+    <div className="relative hidden md:flex shrink-0 h-8 rounded-full border border-line-2 p-0.5 bg-ink/5 whitespace-nowrap" role="radiogroup" aria-label="Operating mode">
       {(["observe", "advise", "autopilot"] as const).map((m) => (
         <button key={m} role="radio" aria-checked={mode === m} onClick={() => choose(m)}
-          className={clsx("relative z-10 px-2.5 xl:px-3 text-[12px] capitalize rounded-full transition-colors", mode === m ? "text-[#031118] font-semibold" : "text-muted hover:text-ink")}>
+          className={clsx("relative z-10 px-2.5 xl:px-3 text-[12px] capitalize rounded-full transition-colors", mode === m ? "text-white font-semibold" : "text-muted hover:text-ink")}>
           {mode === m && <motion.span layoutId="modepill" className="absolute inset-0 -z-10 rounded-full"
-            style={{ background: m === "autopilot" ? "linear-gradient(180deg,#a99dff,#7a6af0)" : "linear-gradient(180deg,#5beaff,#19bfe0)" }}
+            style={{ background: m === "autopilot" ? "linear-gradient(180deg,#7c66d9,#6e56cf)" : "linear-gradient(180deg,#2a303b,#14181f)" }}
             transition={{ type: "spring", stiffness: 500, damping: 40 }} />}
           {m === "autopilot" ? <>Autopilot<span className="hidden xl:inline"> · paper</span></> : m}
         </button>
@@ -131,13 +131,13 @@ function TopBar({ split, setSplit }: { split: boolean; setSplit: (v: boolean) =>
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
   return (
-    <header className="relative z-30 flex items-center gap-2 lg:gap-3 h-14 px-3 lg:px-4 border-b border-line bg-[#111823]/80 backdrop-blur-xl">
+    <header className="relative z-30 flex items-center gap-2 lg:gap-3 h-14 px-3 lg:px-4 border-b border-line bg-white/80 backdrop-blur-xl">
       <Link href="/" className="flex items-center gap-2.5 pr-1 lg:pr-2 shrink-0" title="About Meridian">
         <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden>
-          <circle cx="16" cy="16" r="13" fill="none" stroke="#38e1ff" strokeOpacity=".35" />
+          <circle cx="16" cy="16" r="13" fill="none" stroke="#0a7ea4" strokeOpacity=".35" />
           <circle cx="16" cy="16" r="7" fill="url(#lg)" />
-          <path d="M2 16 Q16 6 30 16 Q16 26 2 16" fill="none" stroke="#e8eef6" strokeWidth="1.2" />
-          <defs><radialGradient id="lg"><stop offset="0" stopColor="#fff" /><stop offset=".5" stopColor="#38e1ff" /><stop offset="1" stopColor="#0b3a48" /></radialGradient></defs>
+          <path d="M2 16 Q16 6 30 16 Q16 26 2 16" fill="none" stroke="#14181f" strokeWidth="1.2" />
+          <defs><radialGradient id="lg"><stop offset="0" stopColor="#fff" /><stop offset=".5" stopColor="#0a7ea4" /><stop offset="1" stopColor="#0a5a75" /></radialGradient></defs>
         </svg>
         <span className="hidden sm:inline display text-[15px] font-semibold tracking-[0.32em]">MERIDIAN</span>
       </Link>
@@ -155,7 +155,7 @@ function TopBar({ split, setSplit }: { split: boolean; setSplit: (v: boolean) =>
       <span className="hidden xl:inline-flex chip !h-8 shrink-0 whitespace-nowrap display text-[10.5px] tracking-[0.18em] font-semibold text-ink-2" title="National Stock Exchange of India · INR · IST">NSE · ₹</span>
       <span className={clsx("chip !h-8 shrink-0 whitespace-nowrap display text-[10.5px] tracking-[0.18em] font-semibold", paper?.ok ? "text-mint border-mint/40 bg-mint/5" : "text-coral border-coral/50")}
         title="Rendered from the server's boot-time paper-only assertion, not a client constant">
-        <span className="live-dot" style={{ background: paper?.ok ? "#3ddc97" : "#ff5c6c" }} />PAPER<span className="hidden md:inline">&nbsp;ONLY</span></span>
+        <span className="live-dot" style={{ background: paper?.ok ? "#0e9f6e" : "#e5484d" }} />PAPER<span className="hidden md:inline">&nbsp;ONLY</span></span>
       <button className="hidden sm:grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line-2 text-muted hover:text-ink"
         onClick={() => { const m = !muted; setMuted(m); speaker.muted = m; if (m) speaker.stop(); }} aria-label={muted ? "Unmute voice" : "Mute voice"}
         title={mounted ? `${muted ? "Voice muted" : isSpeakerTab() ? "Speaking in this tab" : "Another Meridian tab is speaking (click here to take over)"} · ${browserVoiceName() ?? "voice loading"}` : "Voice"}>
@@ -172,13 +172,13 @@ function Rail() {
   const llm = useM((s) => s.st?.llm);
   const voice = useM((s) => s.st?.voice);
   return (
-    <nav className="relative z-20 hidden md:flex flex-col items-center gap-1.5 w-[64px] py-3 border-r border-line bg-[#111823]/60" aria-label="Screens">
+    <nav className="relative z-20 hidden md:flex flex-col items-center gap-1.5 w-[64px] py-3 border-r border-line bg-white/60" aria-label="Screens">
       {NAV.map((n) => {
         const on = path === n.href;
         return (
           <Link key={n.href} href={n.href} title={`${n.label}  (${n.key})`}
-            className={clsx("relative h-11 w-11 grid place-items-center rounded-xl transition-all", on ? "text-cyan bg-cyan/10" : "text-muted hover:text-ink hover:bg-white/5")}>
-            {on && <motion.span layoutId="railmark" className="absolute -left-[10px] h-6 w-[3px] rounded-r bg-cyan shadow-[0_0_12px_#38e1ff]" />}
+            className={clsx("relative h-11 w-11 grid place-items-center rounded-xl transition-all", on ? "text-cyan bg-cyan/10" : "text-muted hover:text-ink hover:bg-ink/5")}>
+            {on && <motion.span layoutId="railmark" className="absolute -left-[10px] h-6 w-[3px] rounded-r bg-cyan shadow-sm" />}
             <n.icon size={19} strokeWidth={1.7} />
           </Link>
         );
@@ -197,7 +197,7 @@ function Rail() {
 function MobileNav() {
   const path = usePathname();
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 flex justify-around h-14 border-t border-line bg-[#111823]/95 backdrop-blur" aria-label="Screens">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 flex justify-around h-14 border-t border-line bg-white/95 backdrop-blur" aria-label="Screens">
       {NAV.map((n) => (
         <Link key={n.href} href={n.href} aria-label={n.label} className={clsx("grid place-items-center flex-1 min-w-0", path === n.href ? "text-cyan" : "text-muted")}>
           <n.icon size={20} /></Link>
@@ -209,7 +209,7 @@ function MobileNav() {
 function Toasts() {
   const toasts = useM((s) => s.toasts);
   const dismiss = useM((s) => s.dismiss);
-  const tone = { info: "#38e1ff", good: "#3ddc97", bad: "#ff5c6c", warn: "#ffb547" };
+  const tone = { info: "#0a7ea4", good: "#0e9f6e", bad: "#e5484d", warn: "#b7790b" };
   return (
     <div className="fixed right-4 bottom-20 md:bottom-5 z-50 flex flex-col gap-2 w-[360px] max-w-[calc(100vw-2rem)]" aria-live="polite">
       <AnimatePresence>

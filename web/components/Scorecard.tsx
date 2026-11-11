@@ -53,7 +53,7 @@ export default function Scorecard() {
         {Object.entries(card.pillars).map(([k, p], i) => {
           const Icon = ICON[k] ?? Brain;
           return (
-            <div key={k} className="min-w-0 rounded-xl border border-line bg-white/[0.02] p-3" title={p.detail}>
+            <div key={k} className="min-w-0 rounded-xl border border-line bg-ink/[0.02] p-3" title={p.detail}>
               <div className="flex items-center justify-between gap-2">
                 <span className="flex items-center gap-1.5 text-[12px] text-ink-2 min-w-0"><Icon size={13} className="shrink-0" />
                   <span className="truncate">{p.label}</span></span>

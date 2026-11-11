@@ -28,7 +28,7 @@ function RHist({ data }: { data: { r: number; n: number }[] }) {
         <div key={d.r} className="flex-1 flex flex-col items-center gap-1" title={`${d.n} trades at ${d.r}R`}>
           <span className="num text-[10px] text-muted">{d.n}</span>
           <motion.div className="w-full rounded-t-md" initial={{ height: 0 }} animate={{ height: `${(d.n / max) * 100}px` }}
-            style={{ background: d.r >= 0 ? "linear-gradient(180deg,#3ddc97,#3ddc9744)" : "linear-gradient(180deg,#ff5c6c,#ff5c6c44)" }} />
+            style={{ background: d.r >= 0 ? "linear-gradient(180deg,#0e9f6e,#0e9f6e44)" : "linear-gradient(180deg,#e5484d,#e5484d44)" }} />
           <span className="num text-[10px] text-faint">{d.r > 0 ? "+" : ""}{d.r}</span>
         </div>
       ))}

@@ -45,11 +45,11 @@ export default function HaltLever({ big = false }: { big?: boolean }) {
       <button onPointerDown={down} onPointerUp={up} onPointerLeave={up} onPointerCancel={up} disabled={locked}
         className="relative grid place-items-center select-none rounded-full transition-transform active:scale-[0.98]"
         style={{ width: S, height: S, background: locked ? "radial-gradient(circle,#2a0f14,#12090b)" :
-          "radial-gradient(circle at 50% 40%, #3a1219, #1a0a0e 70%)", boxShadow: `0 0 ${20 + p * 60}px rgba(255,92,108,${0.25 + p * 0.5})` }}
+          "radial-gradient(circle at 50% 40%, #3a1219, #1a0a0e 70%)", boxShadow: `0 0 ${20 + p * 60}px rgba(229,72,77,${0.25 + p * 0.5})` }}
         aria-label="Hold for one second to halt everything">
         <svg width={S} height={S} className="absolute inset-0 -rotate-90">
-          <circle cx={S / 2} cy={S / 2} r={r} fill="none" stroke="#3a1a20" strokeWidth={8} />
-          <circle cx={S / 2} cy={S / 2} r={r} fill="none" stroke="#ff5c6c" strokeWidth={8} strokeLinecap="round"
+          <circle cx={S / 2} cy={S / 2} r={r} fill="none" stroke="#f6d4d5" strokeWidth={8} />
+          <circle cx={S / 2} cy={S / 2} r={r} fill="none" stroke="#e5484d" strokeWidth={8} strokeLinecap="round"
             strokeDasharray={C} strokeDashoffset={C * (1 - (locked ? 1 : p))} />
         </svg>
         <div className="flex flex-col items-center gap-1 text-coral">
@@ -63,13 +63,13 @@ export default function HaltLever({ big = false }: { big?: boolean }) {
   return (
     <button onPointerDown={down} onPointerUp={up} onPointerLeave={up} onPointerCancel={up}
       className="relative flex items-center gap-2 h-9 pl-1.5 pr-3.5 rounded-full select-none overflow-hidden transition-all"
-      style={{ background: locked ? "rgba(255,92,108,0.18)" : "rgba(255,92,108,0.1)", border: "1px solid rgba(255,92,108,0.45)",
-        boxShadow: p > 0 ? `0 0 ${p * 30}px rgba(255,92,108,0.6)` : "none" }}
+      style={{ background: locked ? "rgba(229,72,77,0.18)" : "rgba(229,72,77,0.1)", border: "1px solid rgba(229,72,77,0.45)",
+        boxShadow: p > 0 ? `0 0 ${p * 30}px rgba(229,72,77,0.6)` : "none" }}
       aria-label="Hold one second to halt all trading" title="Hold 1 s to halt (or press Esc twice)">
       <span className="absolute inset-y-0 left-0 bg-coral/25" style={{ width: `${(locked ? 1 : p) * 100}%` }} />
       <svg width={S} height={S} className="relative -rotate-90">
-        <circle cx={S / 2} cy={S / 2} r={r} fill="#ff5c6c22" stroke="#ff5c6c55" strokeWidth={2} />
-        <circle cx={S / 2} cy={S / 2} r={r} fill="none" stroke="#ff5c6c" strokeWidth={2.5} strokeDasharray={C}
+        <circle cx={S / 2} cy={S / 2} r={r} fill="#e5484d22" stroke="#e5484d55" strokeWidth={2} />
+        <circle cx={S / 2} cy={S / 2} r={r} fill="none" stroke="#e5484d" strokeWidth={2.5} strokeDasharray={C}
           strokeDashoffset={C * (1 - (locked ? 1 : p))} />
       </svg>
       <span className="relative display text-[12px] font-semibold tracking-[0.16em] text-coral">{locked ? "HALTED" : "HALT"}</span>

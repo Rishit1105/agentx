@@ -37,7 +37,7 @@ function TicketCard() {
   if (!t) return null;
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="panel p-4 !border-amber/40"
-      style={{ boxShadow: "0 0 0 1px rgba(255,181,71,.15), 0 20px 50px -20px rgba(255,181,71,.25)" }}>
+      style={{ boxShadow: "0 0 0 1px rgba(183,121,11,.15), 0 20px 50px -20px rgba(183,121,11,.25)" }}>
       <div className="flex items-center justify-between"><span className="label !text-amber">Ticket · risk gate PASS</span>
         <span className="num text-[10.5px] text-faint">#{t.fingerprint}</span></div>
       <div className="display text-[22px] mt-1.5">BUY <span className="num">{t.qty}</span> {t.symbol}</div>

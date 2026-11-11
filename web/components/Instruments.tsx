@@ -18,15 +18,15 @@ export function Sundial({ stories, compact = false }: { stories: Story[]; compac
   const H = compact ? 0 : 1;
   const y = (m: number) => ((m - open) / (close - open)) * 100;
   const zones = [
-    { from: 555, to: mm(lim?.no_entries_before ?? "09:30"), c: "#ffb547", label: "Opening range" },
-    { from: mm(lim?.no_entries_before ?? "09:30"), to: mm(lim?.no_entries_after ?? "15:00"), c: "#3ddc97", label: "Entry window" },
-    { from: mm(lim?.no_entries_after ?? "15:00"), to: mm(lim?.flat_by ?? "15:15"), c: "#ffb547", label: "No new entries" },
-    { from: mm(lim?.flat_by ?? "15:15"), to: 930, c: "#ff5c6c", label: "Flat-by" },
+    { from: 555, to: mm(lim?.no_entries_before ?? "09:30"), c: "#b7790b", label: "Opening range" },
+    { from: mm(lim?.no_entries_before ?? "09:30"), to: mm(lim?.no_entries_after ?? "15:00"), c: "#0e9f6e", label: "Entry window" },
+    { from: mm(lim?.no_entries_after ?? "15:00"), to: mm(lim?.flat_by ?? "15:15"), c: "#b7790b", label: "No new entries" },
+    { from: mm(lim?.flat_by ?? "15:15"), to: 930, c: "#e5484d", label: "Flat-by" },
   ];
   const now = clock ? mm(clock.hhmm) : 555;
   const pins = stories.filter((s) => ["trade", "skip", "block", "halt"].includes(s.kind)).map((s) => ({
     m: mm(s.vclock.slice(11, 16)), kind: s.kind, sym: s.symbol, id: s.id, headline: s.headline }));
-  const pinColor: Record<string, string> = { trade: "#3ddc97", skip: "#7d8a9c", block: "#ffb547", halt: "#ff5c6c" };
+  const pinColor: Record<string, string> = { trade: "#0e9f6e", skip: "#646b76", block: "#b7790b", halt: "#e5484d" };
   void H;
   return (
     <div className="relative h-full min-h-[420px] flex">
@@ -37,12 +37,12 @@ export function Sundial({ stories, compact = false }: { stories: Story[]; compac
         ))}
       </div>
       <div className="relative flex-1">
-        <div className="absolute left-3 top-0 bottom-0 w-[10px] rounded-full overflow-hidden bg-white/[0.03] border border-line">
+        <div className="absolute left-3 top-0 bottom-0 w-[10px] rounded-full overflow-hidden bg-ink/[0.03] border border-line">
           {zones.map((z) => (
             <div key={z.label} className="absolute inset-x-0" title={z.label}
               style={{ top: `${y(z.from)}%`, height: `${y(z.to) - y(z.from)}%`, background: `linear-gradient(180deg, ${z.c}55, ${z.c}22)` }} />
           ))}
-          <div className="absolute inset-x-0 top-0 bg-white/[0.08]" style={{ height: `${Math.max(0, Math.min(100, y(now)))}%` }} />
+          <div className="absolute inset-x-0 top-0 bg-ink/[0.08]" style={{ height: `${Math.max(0, Math.min(100, y(now)))}%` }} />
         </div>
         {zones.map((z) => (
           <div key={z.label + "l"} className="absolute left-8 text-[10.5px] tracking-wide" style={{ top: `calc(${(y(z.from) + y(z.to)) / 2}% - 7px)`, color: z.c + "cc" }}>
@@ -50,15 +50,15 @@ export function Sundial({ stories, compact = false }: { stories: Story[]; compac
         ))}
         {pins.map((p) => (
           <div key={p.id} className="absolute left-[7px] flex items-center gap-2 group" style={{ top: `calc(${y(p.m)}% - 9px)` }}>
-            <span className="h-[18px] w-[18px] rounded-full grid place-items-center border-2" style={{ borderColor: pinColor[p.kind], background: "#0d1219",
+            <span className="h-[18px] w-[18px] rounded-full grid place-items-center border-2" style={{ borderColor: pinColor[p.kind], background: "#ffffff",
               boxShadow: `0 0 12px ${pinColor[p.kind]}88` }}><span className="h-1.5 w-1.5 rounded-full" style={{ background: pinColor[p.kind] }} /></span>
-            <span className="text-[11px] num px-1.5 py-0.5 rounded bg-black/60 border border-line" style={{ color: pinColor[p.kind] }}>
+            <span className="text-[11px] num px-1.5 py-0.5 rounded bg-ink/30 border border-line" style={{ color: pinColor[p.kind] }}>
               {p.kind} {p.sym ?? ""}</span>
           </div>
         ))}
         {clock && now >= 555 && now <= 930 && (
           <motion.div className="absolute left-0 right-0 flex items-center gap-2" animate={{ top: `calc(${y(now)}% - 1px)` }} transition={{ duration: 0.4 }}>
-            <span className="h-[2px] w-9 bg-cyan shadow-[0_0_10px_#38e1ff]" />
+            <span className="h-[2px] w-9 bg-cyan shadow-sm" />
             <span className="num text-[11px] text-cyan bg-cyan/10 border border-cyan/30 rounded px-1.5">NOW {clock.hhmm}</span>
           </motion.div>
         )}
@@ -77,7 +77,7 @@ export function RiskReservoir() {
   const committed = risk?.committed ?? 0, limit = risk?.daily_limit ?? 150;
   const liveLoss = Math.max(0, -((acct?.realized ?? 0) + (acct?.unrealized ?? 0)));
   const used = Math.min(1, Math.max(committed, liveLoss) / limit);
-  const col = used < 0.5 ? "#3ddc97" : used < 0.8 ? "#ffb547" : "#ff5c6c";
+  const col = used < 0.5 ? "#0e9f6e" : used < 0.8 ? "#b7790b" : "#e5484d";
   const W = 120, H = 170, top = 14, h = H - top - 6;
   const level = top + h * (1 - used);
   const wave = (ph: number, amp: number) => {
@@ -93,14 +93,14 @@ export function RiskReservoir() {
             <stop offset="1" stopColor={col} stopOpacity="0.25" /></linearGradient>
           <clipPath id="tank"><rect x="6" y={top} width={W - 12} height={h} rx="14" /></clipPath>
         </defs>
-        <rect x="6" y={top} width={W - 12} height={h} rx="14" fill="#090d13" stroke="#263345" />
+        <rect x="6" y={top} width={W - 12} height={h} rx="14" fill="#fbfaf7" stroke="#d8d4ca" />
         <g clipPath="url(#tank)">
           {used > 0 && <path d={wave(40, 2.2)} fill={col} opacity="0.25" />}
           {used > 0 && <path d={wave(0, 3)} fill="url(#liq)" />}
         </g>
-        {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={W - 18} x2={W - 8} y1={top + h * f} y2={top + h * f} stroke="#3a4658" />)}
-        <rect x="6" y={top} width={W - 12} height={h} rx="14" fill="none" stroke="#ffffff10" />
-        <rect x={W / 2 - 18} y={4} width={36} height={10} rx="4" fill="#161f2c" stroke="#263345" />
+        {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={W - 18} x2={W - 8} y1={top + h * f} y2={top + h * f} stroke="#c9c5bb" />)}
+        <rect x="6" y={top} width={W - 12} height={h} rx="14" fill="none" stroke="#14181f10" />
+        <rect x={W / 2 - 18} y={4} width={36} height={10} rx="4" fill="#f2f1ec" stroke="#d8d4ca" />
       </svg>
       <div className="space-y-3 min-w-0">
         <div><div className="label">Daily loss budget</div>
@@ -122,14 +122,14 @@ export function PriceLadder({ p }: { p: Position }) {
   const lo = Math.min(stop, p.last) - (target - stop) * 0.12, hi = Math.max(target, p.last) + (target - stop) * 0.12;
   const y = (v: number) => 100 - ((v - lo) / (hi - lo)) * 100;
   const rows = [
-    { k: "TARGET", v: target, c: "#3ddc97" }, { k: "ENTRY", v: p.avg_price, c: "#b4c0cf" }, { k: "STOP", v: stop, c: "#ff5c6c" },
+    { k: "TARGET", v: target, c: "#0e9f6e" }, { k: "ENTRY", v: p.avg_price, c: "#3d4450" }, { k: "STOP", v: stop, c: "#e5484d" },
   ];
   const up = p.last >= p.avg_price;
   return (
     <div className="flex gap-4">
       <div className="relative w-[118px] h-[190px]">
         <div className="absolute left-[54px] top-0 bottom-0 w-[6px] rounded-full"
-          style={{ background: `linear-gradient(180deg,#3ddc97 0%, #3ddc9744 ${y(p.avg_price)}%, #ff5c6c44 ${y(p.avg_price)}%, #ff5c6c 100%)` }} />
+          style={{ background: `linear-gradient(180deg,#0e9f6e 0%, #0e9f6e44 ${y(p.avg_price)}%, #e5484d44 ${y(p.avg_price)}%, #e5484d 100%)` }} />
         {rows.map((r) => (
           <div key={r.k} className="absolute left-0 right-0 flex items-center" style={{ top: `calc(${y(r.v)}% - 8px)` }}>
             <span className="w-[50px] text-right pr-2 text-[9.5px] tracking-[0.14em]" style={{ color: r.c }}>{r.k}</span>
@@ -138,13 +138,13 @@ export function PriceLadder({ p }: { p: Position }) {
           </div>
         ))}
         <motion.div className="absolute left-[44px] flex items-center" animate={{ top: `calc(${y(p.last)}% - 9px)` }} transition={{ duration: 0.5 }}>
-          <span className="h-[18px] w-[26px] rounded-md grid place-items-center text-[9px] font-bold text-[#031118]"
-            style={{ background: up ? "#3ddc97" : "#ff5c6c", boxShadow: `0 0 14px ${up ? "#3ddc97" : "#ff5c6c"}` }}>NOW</span>
+          <span className="h-[18px] w-[26px] rounded-md grid place-items-center text-[9px] font-bold text-white"
+            style={{ background: up ? "#0e9f6e" : "#e5484d" }}>NOW</span>
         </motion.div>
       </div>
       <div className="space-y-2 text-[12px]">
         <div className="display text-xl">{p.symbol} <span className="text-muted text-sm num">×{p.qty}</span></div>
-        <div className="num text-[22px]" style={{ color: up ? "#3ddc97" : "#ff5c6c" }}>{fmt.usd(p.unrealized)}</div>
+        <div className="num text-[22px]" style={{ color: up ? "#0e9f6e" : "#e5484d" }}>{fmt.usd(p.unrealized)}</div>
         <div className="text-muted">Last <span className="num text-ink">{p.last.toFixed(2)}</span></div>
         <div className="text-muted">R now <span className="num text-ink">{p.r_now == null ? "—" : fmt.sgn(p.r_now) + "R"}</span></div>
         <div className="text-muted">Max loss <span className="num text-ink">{fmt.usd(p.max_loss)}</span></div>
@@ -165,7 +165,7 @@ export function CaptionRibbon({ max = 4 }: { max?: number }) {
         {items.map((c, i) => (
           <motion.div key={c.id + c.who} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: i === items.length - 1 ? 1 : 0.55, y: 0 }}
             className={clsx("flex gap-3 text-[14px] leading-relaxed", c.who === "you" && "justify-end")}>
-            {c.who === "meridian" && <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-cyan shadow-[0_0_8px_#38e1ff]" />}
+            {c.who === "meridian" && <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-cyan shadow-sm" />}
             <p className={clsx("max-w-[640px]", c.who === "you" ? "text-ink-2 italic text-right" : "text-ink")}>
               {c.who === "you" && <span className="label !text-[9.5px] mr-2 not-italic">you</span>}
               {c.text}
@@ -234,7 +234,7 @@ export function CommandBar({ chips = true }: { chips?: boolean }) {
       <form onSubmit={(e) => { e.preventDefault(); send(text); }} className="flex items-center gap-2 panel !rounded-2xl p-1.5 pl-2">
         <button type="button" onPointerDown={pttDown} onPointerUp={pttUp} onPointerLeave={pttUp}
           className={clsx("relative h-10 w-10 shrink-0 rounded-xl grid place-items-center transition-all",
-            holding || voice === "listening" ? "bg-cyan text-[#031118] shadow-[0_0_24px_#38e1ff]" : "bg-white/5 text-ink-2 hover:text-cyan")}
+            holding || voice === "listening" ? "bg-cyan text-white shadow-sm" : "bg-ink/5 text-ink-2 hover:text-cyan")}
           aria-label="Hold to talk">
           {holding && <span className="absolute inset-0 rounded-xl animate-ping bg-cyan/40" />}
           <Mic size={18} className="relative" />

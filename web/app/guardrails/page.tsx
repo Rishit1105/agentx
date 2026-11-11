@@ -93,8 +93,8 @@ export default function Guardrails() {
                   <div key={name}>
                     <div className="flex justify-between text-[12px]"><span className="capitalize text-ink-2">{name.replace("_", " ")}</span>
                       <span className="num text-muted">{b.value == null ? "—" : Number(b.value).toFixed(name === "drawdown" ? 3 : 0)} / {b.limit}</span></div>
-                    <div className="h-1.5 rounded-full bg-white/5 mt-1.5 overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${pct * 100}%`, background: pct < 0.5 ? "#3ddc97" : pct < 0.8 ? "#ffb547" : "#ff5c6c" }} /></div>
+                    <div className="h-1.5 rounded-full bg-ink/5 mt-1.5 overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${pct * 100}%`, background: pct < 0.5 ? "#0e9f6e" : pct < 0.8 ? "#b7790b" : "#e5484d" }} /></div>
                   </div>
                 );
               })}

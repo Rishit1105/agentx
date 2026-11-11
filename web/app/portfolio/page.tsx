@@ -104,8 +104,8 @@ export default function PortfolioPage() {
               <div key={r.sector}>
                 <div className="flex justify-between text-[12.5px]"><span>{r.sector}</span>
                   <span className="num text-muted">{r.pct.toFixed(1)}% · {fmt.lakh(r.value)}</span></div>
-                <div className="h-1.5 rounded-full bg-white/5 mt-1 overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, Math.max(0, r.pct))}%`, background: r.sector === "Cash" ? "#7d8a9c" : "#38e1ff" }} />
+                <div className="h-1.5 rounded-full bg-ink/5 mt-1 overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, Math.max(0, r.pct))}%`, background: r.sector === "Cash" ? "#646b76" : "#0a7ea4" }} />
                 </div>
               </div>))}</div>;
           })()}

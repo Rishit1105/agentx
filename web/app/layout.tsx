@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description: "Voice-native paper-trading desk for NSE India: one Conductor, sixteen agents, five defence layers, zero real money.",
   manifest: "/manifest.webmanifest",
 };
-export const viewport: Viewport = { themeColor: "#0e131b", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#f6f5f1", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

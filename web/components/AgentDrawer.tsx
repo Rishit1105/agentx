@@ -39,7 +39,7 @@ export default function AgentDrawer() {
     <AnimatePresence>
       {id && (
         <>
-          <motion.div className="fixed inset-0 z-40 bg-black/50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          <motion.div className="fixed inset-0 z-40 bg-ink/30" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => set({ drawerAgent: null })} />
           <motion.aside role="dialog" aria-label={`${LABEL[id]} agent`} className="fixed right-0 top-0 bottom-0 z-50 w-[520px] max-w-full panel !rounded-none !border-y-0 !border-r-0 flex flex-col"
             initial={{ x: 560 }} animate={{ x: 0 }} exit={{ x: 560 }} transition={{ type: "spring", stiffness: 380, damping: 40 }}>
@@ -62,12 +62,12 @@ export default function AgentDrawer() {
                     <div className="panel !rounded-lg p-3"><div className="label">Latency</div><div className="num mt-1">{data.ms} ms</div></div>
                   </div>
                   {data.argv && (
-                    <div className="rounded-lg bg-black/50 border border-line p-3 text-[11.5px] num text-ink-2 break-all">
+                    <div className="rounded-lg bg-ink/30 border border-line p-3 text-[11.5px] num text-ink-2 break-all">
                       <Terminal size={12} className="inline mr-2 text-cyan" />python -I {data.argv.map((a: string) => a.replace(/.*vendor[\\/]day-trader-skill(-in)?[\\/]/, "").replace(/.*replay[\\/]fixtures-in[\\/]/, "replay/")).join(" ")}
                     </div>
                   )}
                   {data.files?.length > 0 && <div className="flex flex-wrap gap-1.5">{data.files.map((f: string) => <span key={f} className="chip num !text-[11px]">{f}</span>)}</div>}
-                  <pre className="rounded-lg bg-black/50 border border-line p-3 text-[11px] num text-ink-2 overflow-auto max-h-[52vh] scroll whitespace-pre-wrap">
+                  <pre className="rounded-lg bg-ink/30 border border-line p-3 text-[11px] num text-ink-2 overflow-auto max-h-[52vh] scroll whitespace-pre-wrap">
                     {data.data ? JSON.stringify(data.data, null, 2).slice(0, 12000) : data.text || "(no output)"}</pre>
                   <div className="text-[11px] text-faint">at {data.at}</div>
                 </>

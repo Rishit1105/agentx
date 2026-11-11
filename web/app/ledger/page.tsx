@@ -10,16 +10,16 @@ import type { Story } from "@/lib/types";
 import Scorecard from "@/components/Scorecard";
 
 const KIND: Record<string, { c: string; icon: any; label: string }> = {
-  trade: { c: "#3ddc97", icon: TrendingUp, label: "Trade" }, skip: { c: "#7d8a9c", icon: CircleSlash, label: "Skip" },
-  block: { c: "#ffb547", icon: Ban, label: "Block" }, halt: { c: "#ff5c6c", icon: AlertOctagon, label: "Halt" },
-  summary: { c: "#38e1ff", icon: Flag, label: "Summary" }, mode: { c: "#8b7cff", icon: ShieldAlert, label: "Mandate" },
+  trade: { c: "#0e9f6e", icon: TrendingUp, label: "Trade" }, skip: { c: "#646b76", icon: CircleSlash, label: "Skip" },
+  block: { c: "#b7790b", icon: Ban, label: "Block" }, halt: { c: "#e5484d", icon: AlertOctagon, label: "Halt" },
+  summary: { c: "#0a7ea4", icon: Flag, label: "Summary" }, mode: { c: "#6e56cf", icon: ShieldAlert, label: "Mandate" },
 };
 
 function Evidence({ file, onClose }: { file: string; onClose: () => void }) {
   const [doc, setDoc] = useState<any>(null);
   useEffect(() => { api.get(`/api/evidence?file=${encodeURIComponent(file)}`).then(setDoc).catch((e) => setDoc({ error: e.message })); }, [file]);
   return (
-    <motion.div className="fixed inset-0 z-50 bg-black/60 grid place-items-center p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+    <motion.div className="fixed inset-0 z-50 bg-ink/30 grid place-items-center p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
       <motion.div className="panel w-[760px] max-w-full max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()} initial={{ y: 20 }} animate={{ y: 0 }}>
         <div className="flex justify-between items-center p-4 border-b border-line"><span className="num text-[13px] text-cyan">{file}</span>
           <button onClick={onClose} aria-label="Close"><X size={16} /></button></div>
@@ -103,8 +103,8 @@ function Ledger() {
               return (
                 <li key={s.id}>
                   <button onClick={() => setSel(s.id)} className={clsx("w-full text-left pl-5 pr-3 py-2.5 rounded-r-xl relative transition-colors",
-                    current?.id === s.id ? "bg-white/[0.05]" : "hover:bg-white/[0.03]")}>
-                    <span className="absolute -left-[6px] top-4 h-[11px] w-[11px] rounded-full border-2" style={{ borderColor: k.c, background: "#0e131b" }} />
+                    current?.id === s.id ? "bg-ink/[0.05]" : "hover:bg-ink/[0.03]")}>
+                    <span className="absolute -left-[6px] top-4 h-[11px] w-[11px] rounded-full border-2" style={{ borderColor: k.c, background: "#f6f5f1" }} />
                     <div className="flex items-center gap-2 text-[11px]"><span style={{ color: k.c }}>{k.label}</span>
                       <span className="num text-faint">{s.vclock.slice(11, 16)}</span>
                       {s.pnl != null && <span className={clsx("num ml-auto", s.pnl >= 0 ? "pos" : "neg")}>{fmt.usd(s.pnl)}</span>}</div>

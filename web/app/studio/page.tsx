@@ -26,18 +26,18 @@ function Stepper() {
         {pipe.steps.map((s, i) => {
           const done = s.status === "done", run = s.status === "running", bad = s.status === "blocked" || s.status === "error",
             wait = s.status === "waiting", skip = s.status === "skipped";
-          const col = done ? "#3ddc97" : run ? "#38e1ff" : bad ? "#ff5c6c" : wait ? "#ffb547" : "#3a4658";
+          const col = done ? "#0e9f6e" : run ? "#0a7ea4" : bad ? "#e5484d" : wait ? "#b7790b" : "#c9c5bb";
           return (
             <li key={s.step} className="flex-1 flex items-center min-w-0" title={s.detail}>
               <div className="flex flex-col items-center gap-1.5 px-1 min-w-0 flex-1">
                 <span className="h-7 w-7 rounded-full grid place-items-center border text-[11px] num transition-all"
-                  style={{ borderColor: col, color: done || run ? "#031118" : col, background: done ? col : run ? col : "transparent",
+                  style={{ borderColor: col, color: done || run ? "#ffffff" : col, background: done ? col : run ? col : "transparent",
                     boxShadow: run ? `0 0 16px ${col}` : "none" }}>
                   {done ? <Check size={14} /> : run ? <Loader2 size={13} className="animate-spin" /> : skip ? "–" : s.step}</span>
-                <span className="text-[11px] tracking-wide" style={{ color: s.status === "idle" ? "#7d8a9c" : "#e8eef6" }}>{s.name}</span>
+                <span className="text-[11px] tracking-wide" style={{ color: s.status === "idle" ? "#646b76" : "#14181f" }}>{s.name}</span>
                 <span className="text-[10px] text-muted truncate max-w-full text-center px-1">{s.detail || " "}</span>
               </div>
-              {i < pipe.steps.length - 1 && <span className="h-px w-4 shrink-0" style={{ background: done ? "#3ddc9766" : "#1c2633" }} />}
+              {i < pipe.steps.length - 1 && <span className="h-px w-4 shrink-0" style={{ background: done ? "#0e9f6e66" : "#e7e4dc" }} />}
             </li>
           );
         })}
@@ -47,13 +47,13 @@ function Stepper() {
 }
 
 function OddsBars({ odds }: { odds: { target?: number; stop?: number; open?: number } }) {
-  const rows = [["Target first", odds.target, "#3ddc97"], ["Stop first", odds.stop, "#ff5c6c"], ["Still open at close", odds.open, "#7d8a9c"]] as const;
+  const rows = [["Target first", odds.target, "#0e9f6e"], ["Stop first", odds.stop, "#e5484d"], ["Still open at close", odds.open, "#646b76"]] as const;
   return (
     <div className="space-y-2">
       {rows.map(([k, v, c]) => (
         <div key={k}>
           <div className="flex justify-between text-[12px]"><span className="text-ink-2">{k}</span><span className="num">{v == null ? "—" : (v * 100).toFixed(1) + "%"}</span></div>
-          <div className="h-1.5 rounded-full bg-white/5 mt-1 overflow-hidden">
+          <div className="h-1.5 rounded-full bg-ink/5 mt-1 overflow-hidden">
             <motion.div className="h-full rounded-full" style={{ background: c }} initial={{ width: 0 }} animate={{ width: `${(v ?? 0) * 100}%` }} />
           </div>
         </div>
@@ -122,7 +122,7 @@ function Studio() {
                 {ranked.map((r: any, i: number) => (
                   <div key={r.id} className={clsx("rounded-xl border p-3", i === 0 && r.gate ? "border-cyan/40 bg-cyan/5" : "border-line")}>
                     <div className="flex justify-between items-center"><span className="text-[13px] font-semibold">{r.label}</span>
-                      <span className="num text-[12px]" style={{ color: r.gate ? "#38e1ff" : "#7d8a9c" }}>{fmt.sgn(r.score)}</span></div>
+                      <span className="num text-[12px]" style={{ color: r.gate ? "#0a7ea4" : "#646b76" }}>{fmt.sgn(r.score)}</span></div>
                     <div className="text-[11.5px] text-muted mt-1">{r.trades} past signals · expectancy {r.expectancy_r == null ? "—" : fmt.sgn(r.expectancy_r, 3) + "R"}</div>
                     <div className="text-[11.5px] mt-2 text-ink-2">{r.gate ? (r.fit_reasons.join(" · ") || "fits") : <span className="text-coral">{r.gate_reason}</span>}</div>
                   </div>

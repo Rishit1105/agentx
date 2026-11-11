@@ -30,7 +30,7 @@ export default function MandateSheet() {
   return (
     <AnimatePresence>
       {prop && (
-        <motion.div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm p-4" initial={{ opacity: 0 }}
+        <motion.div className="fixed inset-0 z-50 grid place-items-center bg-ink/30 backdrop-blur-sm p-4" initial={{ opacity: 0 }}
           animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <motion.div role="dialog" aria-modal aria-labelledby="mtitle" className="panel w-[480px] max-w-full p-6"
             initial={{ y: 24, scale: 0.97 }} animate={{ y: 0, scale: 1 }} exit={{ y: 24, opacity: 0 }}>

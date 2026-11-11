@@ -25,20 +25,20 @@ export default function TimeMachineFan({ bands, entry, stop, target, height = 19
       g.closePath(); g.fillStyle = fill; g.fill();
     };
     const grad = g.createLinearGradient(0, 0, W, 0);
-    grad.addColorStop(0, "rgba(139,124,255,0.06)"); grad.addColorStop(1, "rgba(139,124,255,0.22)");
+    grad.addColorStop(0, "rgba(110,86,207,0.06)"); grad.addColorStop(1, "rgba(110,86,207,0.22)");
     band(0, 4, grad);
     const grad2 = g.createLinearGradient(0, 0, W, 0);
-    grad2.addColorStop(0, "rgba(56,225,255,0.10)"); grad2.addColorStop(1, "rgba(56,225,255,0.32)");
+    grad2.addColorStop(0, "rgba(10,126,164,0.10)"); grad2.addColorStop(1, "rgba(10,126,164,0.32)");
     band(1, 3, grad2);
-    g.strokeStyle = "#38e1ff"; g.lineWidth = 1.6;
+    g.strokeStyle = "#0a7ea4"; g.lineWidth = 1.6;
     g.beginPath(); bands.forEach((q, i) => (i ? g.lineTo(X(i), Y(q[2])) : g.moveTo(X(i), Y(q[2])))); g.stroke();
     const hline = (v: number, col: string, label: string) => {
       g.setLineDash([5, 4]); g.strokeStyle = col; g.lineWidth = 1.2;
       g.beginPath(); g.moveTo(8, Y(v)); g.lineTo(W - 56, Y(v)); g.stroke(); g.setLineDash([]);
       g.fillStyle = col; g.font = "600 10px var(--font-jet), monospace"; g.fillText(`${label} ${v.toFixed(2)}`, W - 54, Y(v) + 3);
     };
-    hline(target, "#3ddc97", "T"); hline(stop, "#ff5c6c", "S");
-    g.fillStyle = "#e8eef6"; g.beginPath(); g.arc(X(0), Y(entry), 3.5, 0, Math.PI * 2); g.fill();
+    hline(target, "#0e9f6e", "T"); hline(stop, "#e5484d", "S");
+    g.fillStyle = "#14181f"; g.beginPath(); g.arc(X(0), Y(entry), 3.5, 0, Math.PI * 2); g.fill();
   }, [bands, entry, stop, target, height]);
   return <canvas ref={ref} style={{ width: "100%", height }} aria-label="Time Machine fan of simulated paths" />;
 }

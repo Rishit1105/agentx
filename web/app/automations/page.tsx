@@ -49,9 +49,9 @@ function Toggle({ on, onChange, label }: { on: boolean; onChange: () => void; la
   return (
     <button role="switch" aria-checked={on} aria-label={label} onClick={onChange}
       className={clsx("relative h-6 w-11 shrink-0 rounded-full border transition-colors",
-        on ? "bg-mint/20 border-mint/50" : "bg-white/5 border-line-2")}>
+        on ? "bg-mint/20 border-mint/50" : "bg-ink/5 border-line-2")}>
       <motion.span layout transition={{ type: "spring", stiffness: 600, damping: 35 }}
-        className={clsx("absolute top-0.5 h-[18px] w-[18px] rounded-full", on ? "right-0.5 bg-mint shadow-[0_0_10px_#3ddc97]" : "left-0.5 bg-muted")} />
+        className={clsx("absolute top-0.5 h-[18px] w-[18px] rounded-full", on ? "right-0.5 bg-mint shadow-sm" : "left-0.5 bg-muted")} />
     </button>
   );
 }
@@ -66,7 +66,7 @@ function RuleCard({ r, busy, onToggle, onRun, onDelete }: {
       className={clsx("panel p-4 flex flex-col gap-3 min-w-0 transition-opacity", !r.enabled && "opacity-70")}>
       <header className="flex items-start gap-3 min-w-0">
         <span className={clsx("h-10 w-10 shrink-0 grid place-items-center rounded-xl border",
-          r.enabled ? "border-cyan/40 bg-cyan/10 text-cyan" : "border-line-2 bg-white/[0.03] text-muted")}>
+          r.enabled ? "border-cyan/40 bg-cyan/10 text-cyan" : "border-line-2 bg-ink/[0.03] text-muted")}>
           {createElement(trigIcon(r.trigger.type), { size: 18 })}
         </span>
         <div className="min-w-0 flex-1">
@@ -146,7 +146,7 @@ function Builder({ onCreate }: { onCreate: (body: any) => Promise<void> }) {
           {TRIGGERS.map((t) => (
             <button key={t.type} onClick={() => setTt(t.type)}
               className={clsx("h-auto min-h-9 px-2.5 py-2 rounded-lg border text-[12px] flex items-center gap-1.5 text-left transition-colors",
-                tt === t.type ? "border-cyan/60 bg-cyan/10 text-ink" : "border-line-2 text-ink-2 hover:border-line-2 hover:bg-white/[0.03]")}>
+                tt === t.type ? "border-cyan/60 bg-cyan/10 text-ink" : "border-line-2 text-ink-2 hover:border-line-2 hover:bg-ink/[0.03]")}>
               <t.icon size={14} className="shrink-0" /><span className="min-w-0">{t.label}</span></button>
           ))}
         </div>
