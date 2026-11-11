@@ -16,7 +16,7 @@ interface S {
   pipeline: { symbol: string | null; steps: PipeStep[] };
   toasts: Toast[];
   mandateProposal: any | null;
-  navTo: { screen: string; symbol?: string | null; t: number } | null;
+  navTo: { screen: string; symbol?: string | null; url?: string; t: number } | null;
   storyFocus: string | null;
   storiesV: number;
   tm: any | null;
@@ -136,7 +136,7 @@ export const useM = create<S>((set, get) => ({
         refetch();
         break;
       case "ui.navigate":
-        set({ navTo: { screen: p.screen, symbol: p.symbol, t: Date.now() } });
+        set({ navTo: { screen: p.screen, symbol: p.symbol, url: p.url, t: Date.now() } });
         break;
       case "ui.mandate":
         set({ mandateProposal: p.proposal });

@@ -239,6 +239,7 @@ function NavFollower() {
   const router = useRouter();
   useEffect(() => {
     if (!navTo) return;
+    if (navTo.screen === "kite" && navTo.url) { window.location.href = navTo.url; return; }   // approved trade -> watch it on Kite
     const n = NAV.find((x) => x.screen === navTo.screen);
     if (n) router.push(n.href + (navTo.symbol ? `?symbol=${navTo.symbol}` : ""));
   }, [navTo, router]);

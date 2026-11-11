@@ -54,8 +54,10 @@ class Desk:
         self.policy = Policy(self.db, self.mandates, self.audit)
         self.exchange = PaperExchange(self.db, float(self.cfg["budget"]), self.cfg["meridian_costs"])
         self.exchange.on_fill(self._on_fill)
-        self.zerodha = ZerodhaCloneMirror(ENV["zerodha_clone_url"])
+        self.zerodha = ZerodhaCloneMirror(ENV["zerodha_clone_url"],
+                                          marks=lambda: {p["symbol"]: p["last"] for p in self.exchange.positions()})
         self.exchange.on_fill(self.zerodha.on_fill)
+        self.exchange.on_fill(self._redirect_to_kite)
         self.sentinel = Sentinel(self)
         self.strategist = Strategist()
         self.journalist = Journalist(self)
@@ -650,6 +652,13 @@ class Desk:
         return {"ok": True, "fill": placed["fill"] if placed else None, "repo_ticket": r.ok}
 
     # ================================================================== exchange callbacks
+    def _redirect_to_kite(self, fill: dict):
+        """After an approved entry fills, send the browser to the Kite dashboard so the trade is watched there."""
+        if fill.get("side") == "buy" and fill.get("leg") == "entry" and self.zerodha.enabled and ENV["zerodha_redirect"]:
+            self.bus.emit("ui.navigate", {"screen": "kite", "symbol": fill.get("symbol"),
+                                          "url": ENV["zerodha_dashboard_url"].rstrip("/") + "/positions"},
+                          actor="exchange", persist=False)
+
     def _on_fill(self, fill: dict):
         if fill.get("side") != "sell":
             return

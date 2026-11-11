@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import queue
 import threading
+import time
 import urllib.request
 from urllib.parse import urlparse
 
@@ -19,8 +20,10 @@ LOOPBACK = {"localhost", "127.0.0.1", "::1"}
 
 
 class ZerodhaCloneMirror:
-    def __init__(self, base_url: str | None):
+    def __init__(self, base_url: str | None, entry_delay_s: float = 3.0, marks=None):
         self.base_url = (base_url or "").rstrip("/")
+        self.entry_delay_s = entry_delay_s   # lets the browser open the Kite page before the entry order lands
+        self.marks = marks                   # callable -> {symbol: last price} of open positions
         self.enabled = False
         self.sent = 0
         self.failed = 0
@@ -31,6 +34,8 @@ class ZerodhaCloneMirror:
             if host in LOOPBACK:
                 self.enabled = True
                 threading.Thread(target=self._worker, name="zerodha-clone-mirror", daemon=True).start()
+                if self.marks:
+                    threading.Thread(target=self._mark_loop, name="zerodha-clone-marks", daemon=True).start()
             else:
                 self.last_error = f"refused: {host or self.base_url} is not a local address (paper-only guard)"
 
@@ -45,13 +50,17 @@ class ZerodhaCloneMirror:
         try:
             self.q.put_nowait({"name": ev["symbol"], "qty": ev["qty"], "price": ev["price"],
                                "mode": "BUY" if ev["side"] == "buy" else "SELL", "source": "meridian",
-                               "note": ev.get("leg") or ""})
+                               "note": ev.get("leg") or "",
+                               "_at": time.time() + (self.entry_delay_s if ev.get("leg") == "entry" else 0.0)})
         except queue.Full:
             self.failed += 1
 
     def _worker(self) -> None:
         while True:
             body = self.q.get()
+            wait = body.pop("_at", 0) - time.time()
+            if wait > 0:
+                time.sleep(wait)
             try:
                 req = urllib.request.Request(f"{self.base_url}/newOrder", data=json.dumps(body).encode(),
                                              headers={"Content-Type": "application/json"}, method="POST")
@@ -60,4 +69,17 @@ class ZerodhaCloneMirror:
                 self.last_error = None
             except Exception as e:   # clone down / not started: keep trading, report in /api/zerodha
                 self.failed += 1
+                self.last_error = str(e)
+
+    def _mark_loop(self) -> None:
+        """Push last-traded prices of open positions every 2s so the Kite screen's P&L moves with the replay clock."""
+        while True:
+            time.sleep(2)
+            try:
+                prices = self.marks()
+                if prices:
+                    req = urllib.request.Request(f"{self.base_url}/markPrices", data=json.dumps({"prices": prices}).encode(),
+                                                 headers={"Content-Type": "application/json"}, method="POST")
+                    urllib.request.urlopen(req, timeout=5).read()
+            except Exception as e:
                 self.last_error = str(e)

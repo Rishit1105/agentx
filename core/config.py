@@ -36,6 +36,8 @@ for p in (TRADER, STATE, MERIDIAN_DIR, GENERATED, CACHE):
 ENV = {
     "mode_default": os.getenv("MERIDIAN_MODE_DEFAULT", "advise"),
     "broker": os.getenv("MERIDIAN_BROKER", "mock"),
+    "zerodha_dashboard_url": os.getenv("ZERODHA_DASHBOARD_URL", "http://localhost:3001"),   # where the browser is sent after you approve
+    "zerodha_redirect": os.getenv("ZERODHA_REDIRECT", "true").lower() == "true",
     "zerodha_clone_url": os.getenv("ZERODHA_CLONE_URL", ""),   # local Zerodha-clone backend to mirror fills into
     "replay_default": os.getenv("REPLAY_DEFAULT", "true").lower() == "true",
     "replay_date": os.getenv("REPLAY_DATE", "2026-11-11"),
