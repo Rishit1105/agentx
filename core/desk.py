@@ -399,7 +399,7 @@ class Desk:
         if self.sentinel.state != "ARMED":
             return {"status": "denied", "reason": f"the desk is {self.sentinel.state.lower()}; re-arm it first"}
         if symbol not in market.symbols() and clock.mode == "replay":
-            return {"status": "error", "reason": f"{symbol} is not in the recorded NIFTY 100 universe for this replay"}
+            return {"status": "error", "reason": f"{symbol} is not in the recorded NIFTY 500 universe for this replay"}
         if scan_hit is None and self.last_scan:
             scan_hit = next((h for h in self.last_scan.get("hits") or [] if h["symbol"] == symbol), None)
         async with self.lock:

@@ -104,17 +104,60 @@ def number(s: str) -> float | None:
     return float(total + cur) if seen else None
 
 
+# --- NIFTY 500 support: spoken-name aliases are generated from company names; short tickers outside the original
+# NIFTY 100 (ACE, SAIL, CAMS...) look like English words, so they only match when typed in capitals.
+_AUTO: list[tuple[str, str]] = []
+_LOWER_OK: set[str] = set()
+_AUTO_KEY: tuple = ()
+_SUFFIX = re.compile(r"\b(limited|ltd|corporation|corp|company|co|pvt|private|incorporated|inc|the|of)\b\.?", re.I)
+_GENERIC = {"india", "indian", "national", "global", "general", "universal", "united", "bharat", "international", "power",
+            "industries", "finance", "financial", "bank", "capital", "energy", "infra", "technologies", "services", "life",
+            "gas", "steel", "motors", "housing", "systems", "holdings", "foods", "chemicals", "pharma", "new", "first",
+            "great", "star", "blue", "green", "gold", "sun", "one", "max", "home", "city", "state", "central", "east", "west"}
+
+
+def ensure_aliases(names: dict[str, str], core: set[str]) -> None:
+    """Build lowercase spoken aliases from {SYMBOL: company name}. Full cleaned name always; first word only when it is
+    distinctive (>=5 letters, unique across companies, not a generic word)."""
+    global _AUTO, _LOWER_OK, _AUTO_KEY
+    key = (len(names), len(core))
+    if key == _AUTO_KEY:
+        return
+    _AUTO_KEY, _LOWER_OK = key, set(core)
+    clean: dict[str, str] = {}
+    for sym, full in names.items():
+        c = re.sub(r"[^a-z0-9&\- ]", " ", _SUFFIX.sub(" ", full.lower()))
+        clean[sym] = re.sub(r"\s+", " ", c).strip()
+    first_count: dict[str, int] = {}
+    for c in clean.values():
+        w = c.split(" ")[0] if c else ""
+        first_count[w] = first_count.get(w, 0) + 1
+    out: dict[str, str] = {}
+    for sym, c in clean.items():
+        if not c or sym == "NIFTY50":
+            continue
+        if len(c) >= 4:
+            out[c] = sym
+        w = c.split(" ")[0]
+        if len(w) >= 5 and w not in _GENERIC and first_count.get(w) == 1:
+            out.setdefault(w, sym)
+    _AUTO = sorted(out.items(), key=lambda kv: -len(kv[0]))
+
+
 def find_ticker(text: str, universe: set[str]) -> str | None:
     low = text.lower()
     for name, t in sorted(NAME_TO_TICKER.items(), key=lambda kv: -len(kv[0])):
         if re.search(rf"\b{re.escape(name)}\b", low):
+            return t
+    for name, t in _AUTO:
+        if t in universe and re.search(rf"(?<![\w&-]){re.escape(name)}(?![\w&-])", low):
             return t
     # NSE symbols can be long and contain digits, '&' and '-': HDFCBANK, BAJAJ-AUTO, M&M
     for tok in re.findall(r"(?<![\w&-])[A-Za-z][A-Za-z0-9&-]{0,11}(?![\w&-])", text):
         up = tok.upper()
         if up in STOP_TICKERS:
             continue
-        if up in universe and (tok.isupper() or len(up) >= 3):
+        if up in universe and (tok.isupper() or (len(up) >= 3 and (not _LOWER_OK or up in _LOWER_OK))):
             return up
     spelled = re.search(r"\b((?:[a-z]\s){1,4}[a-z])\b", low)
     if spelled:

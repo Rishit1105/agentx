@@ -21,7 +21,7 @@ from ..voice.speakable import NAMES, sentences, speakable
 from ..voice.stt import stt
 from ..voice.tts_client import tts
 from .llm import llm
-from .router import Intent, route
+from .router import Intent, ensure_aliases, route
 
 SYSTEM = (Path(__file__).parent / "prompts" / "system.md").read_text(encoding="utf-8")
 
@@ -64,6 +64,17 @@ def money(x) -> str:
         return inr(float(x))
     except (TypeError, ValueError):
         return str(x)
+
+
+def core_symbols() -> set[str]:
+    """The original NIFTY 100 symbols: these may be typed in lowercase. Newer NIFTY 500 names need capitals or a company name."""
+    import csv
+    from ..config import FIXTURES
+    try:
+        with open(FIXTURES / "nse" / "ind_nifty100list.csv", encoding="utf-8", newline="") as fh:
+            return {r["Symbol"].strip() for r in csv.DictReader(fh)}
+    except (OSError, KeyError):
+        return set()
 
 
 class Conductor:
@@ -126,6 +137,7 @@ class Conductor:
         if not raw:
             return {"reply": ""}
         universe = set(self.desk.market.symbols()) | set(NAMES)
+        ensure_aliases(self.desk.market.names, core_symbols())
         intent = route(raw, universe=universe, pending=self.desk.pending is not None)
         self.desk.db.execute("INSERT INTO turns(ts,role,text) VALUES(?,?,?)", (clock.now().isoformat(), "user", raw))
         self.history.append({"role": "user", "content": raw})
