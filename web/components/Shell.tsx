@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Activity, BookText, CandlestickChart, FlaskConical, LayoutGrid, Pause, Play, Shield, Wifi, WifiOff, X,
-  FastForward, Cpu, Volume2, VolumeX, Briefcase, Columns2 } from "lucide-react";
+  FastForward, Cpu, Volume2, VolumeX, Briefcase, Columns2, Workflow } from "lucide-react";
 import clsx from "clsx";
 import { api, WS_URL } from "@/lib/api";
 import { fmt, useM } from "@/lib/store";
@@ -19,7 +19,8 @@ const NAV = [
   { href: "/backtest", label: "Backtest Lab", icon: FlaskConical, key: "3", screen: "backtest" },
   { href: "/portfolio", label: "My Portfolio", icon: Briefcase, key: "4", screen: "portfolio" },
   { href: "/ledger", label: "Ledger", icon: BookText, key: "5", screen: "ledger" },
-  { href: "/guardrails", label: "Guardrails", icon: Shield, key: "6", screen: "guardrails" },
+  { href: "/automations", label: "Automations", icon: Workflow, key: "6", screen: "automations" },
+  { href: "/guardrails", label: "Guardrails", icon: Shield, key: "7", screen: "guardrails" },
 ];
 const KITE_URL = process.env.NEXT_PUBLIC_KITE_URL || "http://localhost:3001";
 const SPLIT_KEY = "meridian.split";
