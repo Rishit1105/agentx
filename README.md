@@ -47,6 +47,30 @@ web (Next.js :3000)  ── WebSocket events / REST ──  core (FastAPI :8000)
   On CPU OmniVoice runs at RTF ≈ 12–23, so the fallback ladder applies: cached phrases in the OmniVoice voice, everything
   else in the browser voice (captions always). On an NVIDIA GPU it speaks live.
 
+## New in this fork
+
+* **Automations** (`core/services/automations.py`, screen `/automations`): "when X, do Y" rules on the market clock.
+  Triggers: a time, every N minutes, a price cross, day P&L, risk budget used, scan hits. Actions: briefing, status
+  summary, say, scan (notify / watch the top hit / plan it), plan, flatten, halt. Seven one-click templates
+  (Opening-bell briefing, Breakout radar, Soft loss guard, Risk budget warning, Price alert, Momentum day planner,
+  Pre-close wrap-up). Say them too: *"every 15 minutes scan for breakouts and watch the best one"*, *"at 3 pm give me a
+  status update"*, *"if I'm down 5000 lock the desk"*, *"list my automations"*. Automations can never place an order:
+  a plan still waits for your spoken "yes", and they never replace a ticket that is waiting for one.
+* **Discipline Scorecard** (`core/services/scorecard.py`, top of `/ledger`): grades the session on behaviour (plan
+  before entry, risk respected, patience, every decision explained, outcome in R), with the counts behind each score.
+* **Command palette** (⌘K or the top-bar search): jump to any screen or send any Conductor command without the mic.
+* **Landing page** at `/` (the desk moved to `/deck`), plus a brighter palette and a responsive top bar.
+
+## Run (macOS / Linux)
+
+```bash
+python3 -m venv .venv && .venv/bin/python -m pip install "fastapi>=0.115" "uvicorn[standard]" pydantic httpx numpy faster-whisper reportlab pytest pytest-asyncio python-dotenv tzdata
+cp .env.example .env
+(cd web && npm install)
+.venv/bin/python -m uvicorn core.main:app --host 127.0.0.1 --port 8000      # terminal 1
+(cd web && npm run dev)                                                      # terminal 2, then open http://localhost:3000
+```
+
 ## Setup (Windows)
 
 ```bash
@@ -78,7 +102,7 @@ Then open http://localhost:3000, press play on the NSE REPLAY transport, and try
 ## Tests
 
 ```bash
-.venv/Scripts/python -m pytest                      # 65 tests: policy, audit chain, exchange, costs, validator, voice, grammar, India edition
+.venv/Scripts/python -m pytest                      # 82 tests: policy, audit chain, exchange, costs, validator, voice, grammar, India edition
 python -m unittest discover -s vendor/day-trader-skill/tests   # upstream: 315 tests
 .venv/Scripts/python scripts/e2e_replay.py           # 25-check acceptance run against a running core
 ```
