@@ -151,8 +151,9 @@ body::before {
 
 /* ───────────────────────────── Landing page (/) · editorial slate theme ─────────────────────────────
    Paper & Ink, matching the desk. Scoped to .lp-root: every section reads its colours from --lp-*, so the
-   same component works on the paper canvas (default), the white bands (.lp-white) and the deep-ink feature
-   bands (.lp-ink). .lp-paper resets a subtree (or the nav, which sits outside .lp-root) to the paper set.  */
+   same component works on the paper canvas (default), the white bands (.lp-white) and the soft bands
+   (.lp-soft). One light theme throughout; sections differ only by a half-step of tone and a hairline.
+   .lp-paper resets a subtree (or the nav, which sits outside .lp-root) to the paper set.                   */
 @layer components {
   .lp-root,
   .lp-paper,
@@ -204,33 +205,10 @@ body::before {
     color: var(--lp-ink);
   }
 
-  /* deep-ink feature band: the product-shot stage */
-  .lp-ink {
-    --lp-bg: #14181f;
-    --lp-bg-2: #101319;
-    --lp-surface: #1b2029;
-    --lp-surface-2: #212732;
-    --lp-line: rgba(255, 255, 255, 0.09);
-    --lp-line-2: rgba(255, 255, 255, 0.17);
-    --lp-ink: #f4f3ef;
-    --lp-ink-2: #c6cad1;
-    --lp-muted: #979da7;
-    --lp-faint: #6d737d;
-    --lp-cyan: #52b4d6;
-    --lp-violet: #a090ee;
-    --lp-mint: #45bf8f;
-    --lp-coral: #f07a7e;
-    --lp-amber: #d9a443;
-    --lp-cyan-soft: rgba(82, 180, 214, 0.12);
-    --lp-violet-soft: rgba(160, 144, 238, 0.12);
-    --lp-mint-soft: rgba(69, 191, 143, 0.12);
-    --lp-coral-soft: rgba(240, 122, 126, 0.12);
-    --lp-amber-soft: rgba(217, 164, 67, 0.12);
-    --lp-primary: #f4f3ef;
-    --lp-primary-hover: #ffffff;
-    --lp-on-primary: #14181f;
-    --lp-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 24px 48px -28px rgba(0, 0, 0, 0.6);
-    --lp-shadow-lg: 0 40px 80px -40px rgba(0, 0, 0, 0.7);
+  /* soft band: between paper and white */
+  .lp-soft {
+    --lp-bg: #fbfaf7;
+    --lp-bg-2: #f6f5f1;
     background: var(--lp-bg);
     color: var(--lp-ink);
   }
@@ -316,7 +294,33 @@ body::before {
   .lp-ping { animation: lp-ping 1.8s var(--ease) infinite; }
 
   .lp-hero-canvas canvas { display: block; width: 100% !important; height: 100% !important; }
+  /* the hero's live caption gives way on short screens so the headline never sits on the orb */
+  @media (max-width: 1023px) and (max-height: 859px) { .lp-hero-ticker { display: none; } }
+  @media (max-height: 719px) { .lp-hero-ticker { display: none; } }
   .lp-noscroll-x { overflow-x: clip; }
+
+  /* simulated tape: an endless marquee of two identical rows, with odometer digits */
+  .lp-tape-viewport {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 48px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 48px), transparent);
+  }
+  .lp-marquee { width: max-content; animation: lp-marquee 70s linear infinite; will-change: transform; }
+  .lp-tape-viewport:hover .lp-marquee { animation-play-state: paused; }
+  .lp-digit-col { transition: transform 650ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+
+  /* risk dial slider: a hairline track and a white thumb with an ink ring */
+  .lp-range { -webkit-appearance: none; appearance: none; height: 24px; background: transparent; cursor: pointer; }
+  .lp-range::-webkit-slider-runnable-track { height: 4px; border-radius: 4px; background: var(--lp-line-2); }
+  .lp-range::-moz-range-track { height: 4px; border-radius: 4px; background: var(--lp-line-2); }
+  .lp-range::-moz-range-progress { height: 4px; border-radius: 4px; background: var(--lp-ink); }
+  .lp-range::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 20px; height: 20px; margin-top: -8px; border-radius: 999px;
+    background: var(--lp-surface); border: 1.5px solid var(--lp-ink); box-shadow: 0 1px 2px rgba(20, 24, 31, 0.18);
+  }
+  .lp-range::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 999px;
+    background: var(--lp-surface); border: 1.5px solid var(--lp-ink); box-shadow: 0 1px 2px rgba(20, 24, 31, 0.18);
+  }
 }
 
 @keyframes lp-wave { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
@@ -324,7 +328,10 @@ body::before {
 @keyframes lp-dash { to { stroke-dashoffset: -18; } }
 @keyframes lp-spin { to { transform: rotate(360deg); } }
 @keyframes lp-ping { 0% { transform: scale(1); opacity: 0.7; } 100% { transform: scale(2.2); opacity: 0; } }
+@keyframes lp-marquee { to { transform: translateX(-50%); } }
 
 @media (prefers-reduced-motion: reduce) {
   .lp-root { scroll-behavior: auto; }
+  .lp-marquee { animation: none; }
+  .lp-digit-col, .lp-video-facade img { transition: none; }
 }
