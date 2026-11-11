@@ -14,7 +14,7 @@ import AgentDrawer from "./AgentDrawer";
 import MandateSheet from "./MandateSheet";
 
 const NAV = [
-  { href: "/", label: "Command Deck", icon: LayoutGrid, key: "1", screen: "deck" },
+  { href: "/deck", label: "Command Deck", icon: LayoutGrid, key: "1", screen: "deck" },
   { href: "/studio", label: "Trade Studio", icon: CandlestickChart, key: "2", screen: "studio" },
   { href: "/backtest", label: "Backtest Lab", icon: FlaskConical, key: "3", screen: "backtest" },
   { href: "/portfolio", label: "My Portfolio", icon: Briefcase, key: "4", screen: "portfolio" },
@@ -130,7 +130,7 @@ function TopBar({ split, setSplit }: { split: boolean; setSplit: (v: boolean) =>
   useEffect(() => { setMounted(true); }, []);
   return (
     <header className="relative z-30 flex items-center gap-4 h-14 px-4 border-b border-line bg-[#070a0f]/80 backdrop-blur-xl">
-      <Link href="/" className="flex items-center gap-2.5 pr-2">
+      <Link href="/" className="flex items-center gap-2.5 pr-2" title="About Meridian">
         <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden>
           <circle cx="16" cy="16" r="13" fill="none" stroke="#38e1ff" strokeOpacity=".35" />
           <circle cx="16" cy="16" r="7" fill="url(#lg)" />
@@ -265,6 +265,12 @@ function NavFollower() {
 }
 
 export default function Shell({ children }: { children: React.ReactNode }) {
+  const path = usePathname();
+  if (path === "/") return <>{children}</>;   // the landing page has its own chrome and scrolls
+  return <Desk>{children}</Desk>;
+}
+
+function Desk({ children }: { children: React.ReactNode }) {
   useSocket();
   const kill = useM((s) => s.st?.kill.state);
   const connected = useM((s) => s.connected);
