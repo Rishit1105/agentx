@@ -108,6 +108,43 @@ async def positions():
     return {"positions": desk.exchange.positions(), "account": desk.exchange.account()}
 
 
+@app.get("/api/portfolio")
+async def portfolio():
+    """One-call summary of the paper portfolio: account, holdings with weights and sectors, closed-trade statistics."""
+    acct = desk.exchange.account()
+    holdings = []
+    for p in desk.exchange.positions():
+        cost = p["avg_price"] * p["qty"]
+        holdings.append({**p, "name": market.name(p["symbol"]), "sector": market.industries.get(p["symbol"], "Other"),
+                         "cost": round(cost, 2), "unrealized_pct": round(p["unrealized"] / cost * 100, 2) if cost else 0,
+                         "weight_pct": round(p["value"] / acct["equity"] * 100, 2) if acct["equity"] else 0})
+    sectors: dict[str, float] = {}
+    for h in holdings:
+        sectors[h["sector"]] = sectors.get(h["sector"], 0) + h["value"]
+    closed = [t for t in desk.journalist.list(None, "trade") if t.get("pnl") is not None]
+    wins = [t["pnl"] for t in closed if t["pnl"] > 0]
+    losses = [t["pnl"] for t in closed if t["pnl"] <= 0]
+    best = max(closed, key=lambda t: t["pnl"], default=None)
+    worst = min(closed, key=lambda t: t["pnl"], default=None)
+    pick = lambda t: t and {"symbol": t["symbol"], "pnl": t["pnl"], "id": t["id"]}
+    invested = sum(h["value"] for h in holdings)
+    return {
+        "account": acct, "holdings": holdings,
+        "invested": round(invested, 2), "invested_pct": round(invested / acct["equity"] * 100, 2) if acct["equity"] else 0,
+        "cash_pct": round(acct["cash"] / acct["equity"] * 100, 2) if acct["equity"] else 0,
+        "total_return_pct": round((acct["equity"] - acct["start"]) / acct["start"] * 100, 3) if acct["start"] else 0,
+        "sectors": sorted(({"sector": k, "value": round(v, 2), "pct": round(v / acct["equity"] * 100, 2) if acct["equity"] else 0}
+                           for k, v in sectors.items()), key=lambda r: -r["value"]),
+        "trades": {"closed": len(closed), "wins": len(wins), "losses": len(losses),
+                   "win_rate": round(len(wins) / len(closed) * 100, 1) if closed else None,
+                   "avg_win": round(sum(wins) / len(wins), 2) if wins else None,
+                   "avg_loss": round(sum(losses) / len(losses), 2) if losses else None,
+                   "profit_factor": round(sum(wins) / abs(sum(losses)), 2) if wins and losses and sum(losses) else None,
+                   "best": pick(best), "worst": pick(worst)},
+        "recent_fills": desk.exchange.fills()[:8],
+    }
+
+
 @app.get("/api/stories")
 async def stories(symbol: str | None = None, kind: str | None = None):
     return desk.journalist.list(symbol, kind)

@@ -231,9 +231,9 @@ def route(raw: str, *, universe: set[str], pending: bool) -> Intent:
     if m:
         return I("alert_time", at=m.group(1))
     if re.search(r"\b(show|open|go to|take me to)\b.*\b(backtest|ledger|journal|guard ?rails|studio|trade studio|deck|"
-                 r"command deck|home)\b", t):
-        scr = re.search(r"(backtest|ledger|journal|guard ?rails|studio|deck|home)", t).group(1)
-        scr = {"journal": "ledger", "home": "deck", "guard rails": "guardrails"}.get(scr, scr)
+                 r"command deck|home|portfolio|holdings)\b", t):
+        scr = re.search(r"(backtest|ledger|journal|guard ?rails|studio|deck|home|portfolio|holdings)", t).group(1)
+        scr = {"journal": "ledger", "home": "deck", "guard rails": "guardrails", "holdings": "portfolio"}.get(scr, scr)
         if scr == "backtest":
             return I("backtest", symbol=find_ticker(text, universe), strategy=None)
         return I("navigate", screen=scr, symbol=find_ticker(text, universe))

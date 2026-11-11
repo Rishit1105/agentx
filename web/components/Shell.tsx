@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Activity, BookText, CandlestickChart, FlaskConical, LayoutGrid, Pause, Play, Shield, Wifi, WifiOff, X,
-  FastForward, Cpu, Volume2, VolumeX } from "lucide-react";
+  FastForward, Cpu, Volume2, VolumeX, Briefcase } from "lucide-react";
 import clsx from "clsx";
 import { api, WS_URL } from "@/lib/api";
 import { fmt, useM } from "@/lib/store";
@@ -17,8 +17,9 @@ const NAV = [
   { href: "/", label: "Command Deck", icon: LayoutGrid, key: "1", screen: "deck" },
   { href: "/studio", label: "Trade Studio", icon: CandlestickChart, key: "2", screen: "studio" },
   { href: "/backtest", label: "Backtest Lab", icon: FlaskConical, key: "3", screen: "backtest" },
-  { href: "/ledger", label: "Ledger", icon: BookText, key: "4", screen: "ledger" },
-  { href: "/guardrails", label: "Guardrails", icon: Shield, key: "5", screen: "guardrails" },
+  { href: "/portfolio", label: "My Portfolio", icon: Briefcase, key: "4", screen: "portfolio" },
+  { href: "/ledger", label: "Ledger", icon: BookText, key: "5", screen: "ledger" },
+  { href: "/guardrails", label: "Guardrails", icon: Shield, key: "6", screen: "guardrails" },
 ];
 const PHASE: Record<string, [string, string]> = {
   pre: ["Pre-open", "#7d8a9c"], opening_range: ["Opening range", "#ffb547"], entry_window: ["Entry window", "#3ddc97"],

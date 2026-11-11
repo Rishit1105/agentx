@@ -51,7 +51,7 @@ LLM_TOOLS = [
      "parameters": {"type": "object", "properties": {}}},
     {"name": "navigate_ui", "description": "Show a screen to the user.",
      "parameters": {"type": "object", "properties": {"screen": {"type": "string", "enum": ["deck", "studio", "backtest",
-                    "ledger", "guardrails"]}, "symbol": {"type": "string"}}, "required": ["screen"]}},
+                    "portfolio", "ledger", "guardrails"]}, "symbol": {"type": "string"}}, "required": ["screen"]}},
 ]
 
 HELP = ("Try: scan for breakouts. Plan a trade on Infosys. Does it pass risk. Yes, buy, then the quantity and symbol. "
@@ -294,6 +294,7 @@ class Conductor:
             r = d.pick_strategy(sym)
             return f"For {sym}: {r['reason']}."
         if n == "account":
+            self.nav("portfolio")
             a = d.exchange.account()
             ps = d.exchange.positions()
             pos = "; ".join(f"{int(p['qty'])} {p['symbol']} {money(p['unrealized'])}" for p in ps) or "no open positions"
