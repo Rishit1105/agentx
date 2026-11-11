@@ -17,7 +17,7 @@ from .conductor.conductor import Conductor
 from .desk import AGENTS, Desk
 from .market import market
 from .exchange.engine import ExchangeError
-from .services import scorecard, whatif
+from .services import review, scorecard, whatif
 from .services.automations import TEMPLATES, AutomationError
 from .voice.stt import stt
 from .voice.tts_client import TTS_DIR, tts
@@ -348,6 +348,18 @@ async def what_if(body: dict = Body(...)):
 @app.get("/api/market/map")
 async def market_map():
     return desk.marketmap.snapshot()
+
+
+@app.get("/api/review")
+async def review_view():
+    return review.summary(desk)
+
+
+@app.get("/api/report/day.pdf")
+async def day_report():
+    pdf = review.day_pdf(desk, scorecard.build(desk), desk.journalist.list(limit=40))
+    return Response(pdf, media_type="application/pdf",
+                    headers={"Content-Disposition": "attachment; filename=meridian-day-report.pdf"})
 
 
 @app.get("/api/scorecard")
