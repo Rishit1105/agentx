@@ -374,8 +374,11 @@ class Conductor:
         phase = clock.phase(d.cfg).replace("_", " ")
         status = "open" if ck.get("open") else f"closed ({ck.get('reason', 'outside hours')})"
         br = d.strategist.breadth()
+        pct = br.get("pct_above_open")
+        breadth = (f"{pct}% of the universe is above its open. " if pct is not None else
+                   "Breadth comes in once the first five-minute bar closes. ")
         return (f"Good {'morning' if clock.now().hour < 12 else 'afternoon'}. It's {when} in Mumbai, NSE is {status}, "
-                f"phase: {phase}. {br['pct_above_open']}% of the universe is above its open. "
+                f"phase: {phase}. {breadth}"
                 f"Paper equity {money(a['equity'])}; {money(r['daily_limit'] - r['committed'])} of risk budget left, "
                 f"{r['max_trades'] - r['trades_used']} trades available.")
 
