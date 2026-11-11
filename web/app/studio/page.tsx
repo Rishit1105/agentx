@@ -5,6 +5,7 @@ import { Check, CircleDashed, Loader2, ShieldCheck, ShieldX, Play, Info } from "
 import clsx from "clsx";
 import CandleChart from "@/components/CandleChart";
 import TimeMachineFan from "@/components/TimeMachineFan";
+import WhatIfPanel from "@/components/WhatIfPanel";
 import { useQueryParam } from "@/lib/hooks";
 import { api } from "@/lib/api";
 import { ticketAction } from "@/lib/ticket";
@@ -131,7 +132,8 @@ function Studio() {
             </section>
           )}
         </div>
-        <aside className="space-y-4">
+        <aside className="space-y-4 min-w-0">
+          <WhatIfPanel symbol={symbol} />
           <section className="panel p-4">
             <div className="flex justify-between"><span className="label">Time Machine</span>
               <span className="text-[11px] text-faint num">{tm?.mc ? `${tm.mc.replays.toLocaleString()} replays · seed ${tm.mc.seed}` : ""}</span></div>
