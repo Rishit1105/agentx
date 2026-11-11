@@ -65,7 +65,7 @@ export default function AgentMesh() {
               {/* Conductor */}
               <div className="absolute left-1/2 top-1/2 grid h-[22%] w-[22%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-(--lp-cyan)/50 bg-(--lp-cyan-soft)">
                 <span className="text-center">
-                  <span className="block h-2 w-2 mx-auto rounded-full bg-(--lp-cyan)" />
+                  <span className="mx-auto block h-2 w-2 rounded-full bg-(--lp-cyan)" />
                   <span className="lp-eyebrow mt-1.5 block text-[8.5px] text-(--lp-cyan) sm:text-[9.5px]">Conductor</span>
                 </span>
               </div>
@@ -83,11 +83,11 @@ export default function AgentMesh() {
                     onClick={() => setActive(ag.id)}
                     aria-label={`${ag.name}: ${ag.role}`}
                     aria-pressed={on}
-                    className="absolute grid h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border bg-(--lp-bg) transition-[transform,background-color,border-color] duration-200 sm:h-10 sm:w-10"
+                    className="absolute grid h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border bg-(--lp-surface) shadow-[0_1px_2px_rgba(20,24,31,0.06)] transition-[transform,background-color,border-color] duration-200 sm:h-10 sm:w-10"
                     style={{
                       left: `${p.x}%`, top: `${p.y}%`,
                       borderColor: on ? tone(ag.kind) : "var(--lp-line-2)",
-                      background: on ? `color-mix(in srgb, ${tone(ag.kind)} 18%, var(--lp-bg))` : undefined,
+                      background: on ? `color-mix(in srgb, ${tone(ag.kind)} 12%, var(--lp-surface))` : undefined,
                       transform: `translate(-50%, -50%) scale(${on ? 1.15 : 1})`,
                     }}
                   >
@@ -150,7 +150,7 @@ export default function AgentMesh() {
                           className="flex h-full w-full min-w-0 items-start gap-3 rounded-xl border p-3.5 text-left transition-colors duration-200"
                           style={{
                             borderColor: on ? tone(ag.kind) : "var(--lp-line)",
-                            background: on ? `color-mix(in srgb, ${tone(ag.kind)} 7%, transparent)` : "transparent",
+                            background: on ? `color-mix(in srgb, ${tone(ag.kind)} 6%, var(--lp-surface))` : "var(--lp-surface)",
                           }}
                         >
                           <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-(--lp-line-2)">

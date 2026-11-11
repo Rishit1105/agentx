@@ -66,7 +66,7 @@ function RuleBuilder() {
           initial={reduced ? false : { scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ ...spring, delay: 1.15 }}
-          className="z-10 mx-auto grid h-9 w-9 shrink-0 rotate-90 place-items-center rounded-full border border-(--lp-line-2) bg-(--lp-bg) sm:-mx-2 sm:rotate-0"
+          className="z-10 mx-auto grid h-9 w-9 shrink-0 rotate-90 place-items-center rounded-full border border-(--lp-line-2) bg-(--lp-surface) sm:-mx-2 sm:rotate-0"
           aria-hidden
         >
           <ArrowRight size={15} className="text-(--lp-ink-2)" />
@@ -112,7 +112,7 @@ function RuleBuilder() {
 
 export default function Automations() {
   return (
-    <section id="automations" aria-label="Automations" className="lp-anchor relative">
+    <section id="automations" aria-label="Automations" className="lp-anchor relative border-t border-(--lp-line)">
       <div className="lp-wrap py-24 sm:py-32">
         <SectionHeader
           eyebrow="New · Automations"
@@ -124,7 +124,7 @@ export default function Automations() {
           <RuleBuilder />
 
           <div className="flex min-w-0 flex-col justify-center gap-5">
-            <div className="flex items-start gap-4 rounded-2xl border border-(--lp-amber)/40 bg-(--lp-amber-soft) p-5">
+            <div className="flex items-start gap-4 rounded-xl border border-(--lp-amber)/40 bg-(--lp-amber-soft) p-5">
               <Lock size={18} className="mt-0.5 shrink-0 text-(--lp-amber)" aria-hidden />
               <div className="min-w-0">
                 <p className="text-[16px] font-semibold">Automations can never place orders.</p>
@@ -152,7 +152,7 @@ export default function Automations() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0.4 }}
                   transition={{ duration: 0.5, ease: EASE, delay: (i % 4) * 0.06 }}
-                  className="min-w-0 rounded-2xl border border-(--lp-line) p-5 transition-colors duration-200 hover:border-(--lp-line-2)"
+                  className="min-w-0 rounded-xl border border-(--lp-line) bg-(--lp-surface) p-5 transition-colors duration-200 hover:border-(--lp-line-2)"
                 >
                   <Icon size={17} className="text-(--lp-ink-2)" aria-hidden />
                   <p className="mt-4 text-[15px] font-semibold">{t.name}</p>
@@ -164,7 +164,7 @@ export default function Automations() {
                 </motion.li>
               );
             })}
-            <li className="flex min-w-0 flex-col justify-center rounded-2xl border border-dashed border-(--lp-line-2) p-5">
+            <li className="flex min-w-0 flex-col justify-center rounded-xl border border-dashed border-(--lp-line-2) p-5">
               <p className="text-[15px] font-semibold">Or just say it.</p>
               <p className="mt-2 text-pretty text-[13.5px] leading-relaxed text-(--lp-muted)">
                 “Every 15 minutes scan for breakouts and watch the best one.”

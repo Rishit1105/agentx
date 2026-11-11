@@ -39,7 +39,7 @@ export default function VoiceTicker() {
   const shown = reduced ? text : text.slice(0, ph.chars);
 
   return (
-    <div className="lp-card w-full max-w-xl p-4 sm:p-5" style={{ background: "color-mix(in srgb, var(--lp-surface) 88%, transparent)" }}>
+    <div className="lp-card w-full max-w-xl p-4 sm:p-5">
       <div className="flex items-center gap-3">
         <span className="relative grid h-8 w-8 shrink-0 place-items-center rounded-full border border-(--lp-line-2)">
           <Mic size={14} className="text-(--lp-cyan)" aria-hidden />

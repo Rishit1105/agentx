@@ -12,7 +12,7 @@ const LINKS = [
 /** Footer: the fine print, before the final zoom into the desk. */
 export default function FinePrint() {
   return (
-    <footer className="relative border-y border-(--lp-line) bg-(--lp-bg-2)">
+    <footer className="lp-soft relative border-y border-(--lp-line)">
       <div className="lp-wrap grid gap-10 py-16 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] md:py-20">
         <div className="min-w-0">
           <Wordmark />
@@ -25,6 +25,10 @@ export default function FinePrint() {
             Built with <span className="text-(--lp-ink-2)">day-trader-skill</span> (MIT) and{" "}
             <span className="text-(--lp-ink-2)">OmniVoice</span> (Apache-2.0). Market data for NSE India; replay of 11 Nov 2026.
           </p>
+          <p className="mt-3 text-[13px] leading-relaxed text-(--lp-muted)">
+            Videos are embedded from YouTube in privacy-enhanced mode and load only when you press play. They belong to
+            CNBC-TV18, NSE India, Zerodha and Business Standard, and are not endorsements of Meridian.
+          </p>
         </div>
         <nav aria-label="Desk" className="min-w-0 md:justify-self-end">
           <p className="lp-eyebrow">The desk</p>
@@ -35,7 +39,7 @@ export default function FinePrint() {
               </li>
             ))}
           </ul>
-          <p className="lp-mono mt-8 text-[11px] tracking-[0.12em] text-(--lp-faint)">© 2026 MERIDIAN · SIMULATED TRADING</p>
+          <p className="lp-eyebrow mt-8 text-[11px] text-(--lp-faint)">© 2026 Meridian · simulated trading</p>
         </nav>
       </div>
     </footer>

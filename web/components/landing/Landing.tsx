@@ -7,16 +7,21 @@ import { OrbMark } from "./ui";
 import Nav from "./Nav";
 import Hero from "./Hero";
 import DemoReel from "./DemoReel";
+import Tape from "./Tape";
 import Stats from "./Stats";
+import Problem from "./Problem";
 import AgentMesh from "./AgentMesh";
 import Safety from "./Safety";
 import Automations from "./Automations";
 import Backtest from "./Backtest";
+import WatchStrip from "./WatchStrip";
 import Lifecycle from "./Lifecycle";
+import Ledger from "./Ledger";
 import FinePrint from "./FinePrint";
 import Finale from "./Finale";
 
-/** Storyboard: hero → zoom into the product film → the details → a final zoom straight into /deck. */
+/** Storyboard: hero → zoom into the product film → the problem and the details → a final zoom straight into /deck.
+ *  One light theme throughout: bands alternate only between paper, white and soft, divided by hairlines. */
 export default function Landing() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -48,12 +53,16 @@ export default function Landing() {
           <main>
             <Hero />
             <DemoReel />
+            <Tape />
             <Stats />
+            <Problem />
             <AgentMesh />
             <Safety />
             <Automations />
             <Backtest />
+            <WatchStrip />
             <Lifecycle />
+            <Ledger />
           </main>
           <FinePrint />
           <Finale />
@@ -66,7 +75,7 @@ export default function Landing() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: reduced ? 0 : 0.45, ease: "easeOut" }}
-              className="fixed inset-0 z-[100] grid place-items-center bg-[#06080c]"
+              className="lp-paper fixed inset-0 z-[100] grid place-items-center"
               role="status"
               aria-label="Opening the Command Deck"
             >
@@ -77,7 +86,7 @@ export default function Landing() {
                 className="flex flex-col items-center gap-4"
               >
                 <OrbMark size={44} />
-                <span className="lp-mono text-[11px] tracking-[0.2em] text-[#8794a6]">OPENING THE DESK</span>
+                <span className="lp-eyebrow">Opening the desk</span>
               </motion.div>
             </motion.div>
           )}

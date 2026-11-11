@@ -4,16 +4,20 @@ import type { MotionValue } from "motion/react";
 import * as THREE from "three";
 
 /**
- * The Conductor and its sixteen agents, in plain three.js.
- * A glass fresnel orb, three hairline orbits carrying 11 violet skills and 5 champagne services,
- * threads that pulse from working agents to the core, a quiet dust field and a little mouse parallax.
+ * The Conductor and its sixteen agents, in plain three.js, drawn for a paper background.
+ * A pearl-glass orb with a fine ink ring, three hairline orbits carrying 11 violet skills and 5 teal
+ * services, threads that pulse from working agents to the core, a little grey dust and mouse parallax.
+ * Everything uses normal (not additive) blending, so it reads as ink on paper rather than light on black.
  * `progress` (0..1) dollies the camera into the orb as the hero scrolls away.
  */
 
-const CYAN = new THREE.Color("#4fd3f0");
-const CYAN_DEEP = new THREE.Color("#0f5f78");
-const VIOLET = new THREE.Color("#a194ff");
-const CHAMPAGNE = new THREE.Color("#e9c88f");
+const TEAL = new THREE.Color("#0a7ea4");
+const VIOLET = new THREE.Color("#6e56cf");
+const INK = new THREE.Color("#14181f");
+const PEARL = new THREE.Color("#fdfdfb");
+const PEARL_EDGE = new THREE.Color("#c3ccd3");
+const ORBIT = new THREE.Color("#8a909a");
+const DUST = new THREE.Color("#9aa0a8");
 
 const ORB_VERT = /* glsl */ `
   uniform float uTime;
@@ -33,22 +37,37 @@ const ORB_VERT = /* glsl */ `
 `;
 
 const ORB_FRAG = /* glsl */ `
-  uniform vec3 uRim;
-  uniform vec3 uCore;
+  uniform vec3 uPearl;
+  uniform vec3 uEdge;
+  uniform vec3 uInk;
+  uniform vec3 uTeal;
+  uniform vec3 uViolet;
   uniform float uTime;
   uniform float uBoost;
   varying vec3 vNormal;
   varying vec3 vView;
   varying vec3 vPos;
   void main() {
-    float facing = max(dot(normalize(vNormal), normalize(vView)), 0.0);
-    float rim = pow(1.0 - facing, 2.6);
-    float core = pow(facing, 2.2);
-    // faint latitude lines: the "meridians" of the instrument
-    float lat = smoothstep(0.985, 1.0, abs(sin(vPos.y * 9.0 + uTime * 0.25)));
-    vec3 col = uCore * core * 0.42 + uRim * rim * (1.25 + uBoost) + uRim * lat * 0.18 * facing;
-    float a = clamp(rim * 0.95 + core * 0.22 + lat * 0.08, 0.0, 1.0);
+    vec3 n = normalize(vNormal);
+    float facing = max(dot(n, normalize(vView)), 0.0);
+    float fres = pow(1.0 - facing, 2.0);
+    // pearl body: near-white at the centre, a cool grey toward the limb
+    vec3 col = mix(uPearl, uEdge, fres);
+    // a faint teal-to-violet sheen that drifts around the limb
+    float drift = 0.5 + 0.5 * sin(vPos.y * 2.2 + vPos.x * 1.3 + uTime * 0.35);
+    col = mix(col, mix(uTeal, uViolet, drift), fres * 0.28);
+    // faint latitude lines: the "meridians" of the instrument, in ink
+    float lat = smoothstep(0.988, 1.0, abs(sin(vPos.y * 9.0 + uTime * 0.25)));
+    col = mix(col, uInk, lat * 0.16 * facing);
+    // a soft key light from the upper left
+    float spec = pow(max(dot(n, normalize(vec3(-0.45, 0.6, 0.66))), 0.0), 28.0);
+    col = mix(col, vec3(1.0), spec * 0.85);
+    // the fine ink outline at the silhouette
+    float edge = smoothstep(0.86, 0.985, 1.0 - facing);
+    col = mix(col, uInk, edge * 0.8);
+    float a = clamp(0.42 + fres * 0.42 + edge * 0.4 + spec * 0.2 - uBoost * 0.25, 0.0, 1.0);
     gl_FragColor = vec4(col, a);
+    #include <colorspace_fragment>
   }
 `;
 
@@ -113,8 +132,11 @@ export default function HeroScene({ progress, onReady }: { progress: MotionValue
     /* ── the Conductor ─────────────────────────────────────────── */
     const orbUniforms = {
       uTime: { value: 0 },
-      uRim: { value: CYAN.clone() },
-      uCore: { value: CYAN_DEEP.clone() },
+      uPearl: { value: PEARL.clone() },
+      uEdge: { value: PEARL_EDGE.clone() },
+      uInk: { value: INK.clone() },
+      uTeal: { value: TEAL.clone() },
+      uViolet: { value: VIOLET.clone() },
       uBoost: { value: 0 },
     };
     const orb = new THREE.Mesh(
@@ -125,26 +147,29 @@ export default function HeroScene({ progress, onReady }: { progress: MotionValue
         fragmentShader: ORB_FRAG,
         transparent: true,
         depthWrite: false,
-        blending: THREE.AdditiveBlending,
       }),
     );
+    orb.renderOrder = 2;
     root.add(orb);
 
+    // the teal core, seen through the pearl
     const core = new THREE.Mesh(
-      new THREE.SphereGeometry(0.2, 24, 24),
-      new THREE.MeshBasicMaterial({ color: new THREE.Color("#c9f4ff"), transparent: true, opacity: 0.9 }),
+      new THREE.SphereGeometry(0.16, 24, 24),
+      new THREE.MeshBasicMaterial({ color: TEAL }),
     );
+    core.renderOrder = 1;
     root.add(core);
     const coreHalo = new THREE.Sprite(
-      new THREE.SpriteMaterial({ map: glow, color: CYAN, transparent: true, opacity: 0.32, depthWrite: false, blending: THREE.AdditiveBlending }),
+      new THREE.SpriteMaterial({ map: glow, color: TEAL, transparent: true, opacity: 0.12, depthWrite: false }),
     );
-    coreHalo.scale.setScalar(1.6);
+    coreHalo.scale.setScalar(0.9);
+    coreHalo.renderOrder = 1;
     root.add(coreHalo);
 
-    // two hairline meridians around the glass
-    const meridianMat = new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.35 });
-    const meridianA = new THREE.Mesh(new THREE.TorusGeometry(1.16, 0.0045, 6, 160), meridianMat);
-    const meridianB = new THREE.Mesh(new THREE.TorusGeometry(1.16, 0.0045, 6, 160), meridianMat);
+    // two fine ink meridians around the glass
+    const meridianMat = new THREE.MeshBasicMaterial({ color: INK, transparent: true, opacity: 0.5 });
+    const meridianA = new THREE.Mesh(new THREE.TorusGeometry(1.16, 0.004, 6, 200), meridianMat);
+    const meridianB = new THREE.Mesh(new THREE.TorusGeometry(1.16, 0.004, 6, 200), meridianMat);
     meridianA.rotation.y = Math.PI / 2;
     meridianB.rotation.x = Math.PI / 2;
     const meridians = new THREE.Group();
@@ -154,13 +179,13 @@ export default function HeroScene({ progress, onReady }: { progress: MotionValue
 
     /* ── orbits and the sixteen agents ─────────────────────────── */
     const RINGS = [
-      { r: 1.95, tiltX: 1.18, tiltZ: 0.28, speed: 0.16, color: CHAMPAGNE, count: 5 },
+      { r: 1.95, tiltX: 1.18, tiltZ: 0.28, speed: 0.16, color: TEAL, count: 5 },
       { r: 2.75, tiltX: 1.32, tiltZ: -0.34, speed: -0.09, color: VIOLET, count: 6 },
       { r: 3.45, tiltX: 1.05, tiltZ: 0.52, speed: 0.06, color: VIOLET, count: 5 },
     ];
     const spinners: { group: THREE.Group; speed: number }[] = [];
     const nodes: Node[] = [];
-    const nodeGeo = new THREE.SphereGeometry(0.06, 16, 16);
+    const nodeGeo = new THREE.SphereGeometry(0.065, 16, 16);
 
     for (const ring of RINGS) {
       const tilt = new THREE.Group();
@@ -174,7 +199,7 @@ export default function HeroScene({ progress, onReady }: { progress: MotionValue
       }
       const orbit = new THREE.Line(
         new THREE.BufferGeometry().setFromPoints(pts),
-        new THREE.LineBasicMaterial({ color: new THREE.Color("#9fb4cc"), transparent: true, opacity: 0.16 }),
+        new THREE.LineBasicMaterial({ color: ORBIT, transparent: true, opacity: 0.32 }),
       );
       tilt.add(orbit);
 
@@ -189,33 +214,33 @@ export default function HeroScene({ progress, onReady }: { progress: MotionValue
         spin.add(mesh);
 
         const halo = new THREE.Sprite(
-          new THREE.SpriteMaterial({ map: glow, color: ring.color, transparent: true, opacity: 0.25, depthWrite: false, blending: THREE.AdditiveBlending }),
+          new THREE.SpriteMaterial({ map: glow, color: ring.color, transparent: true, opacity: 0.1, depthWrite: false }),
         );
-        halo.scale.setScalar(0.42);
+        halo.scale.setScalar(0.36);
         mesh.add(halo);
 
         const lineGeo = new THREE.BufferGeometry();
         lineGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(6), 3));
-        const lineMat = new THREE.LineBasicMaterial({ color: ring.color, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+        const lineMat = new THREE.LineBasicMaterial({ color: ring.color, transparent: true, opacity: 0, depthWrite: false });
         const line = new THREE.Line(lineGeo, lineMat);
         line.frustumCulled = false;
         scene.add(line);
 
         const pulse = new THREE.Sprite(
-          new THREE.SpriteMaterial({ map: glow, color: ring.color, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }),
+          new THREE.SpriteMaterial({ map: dot, color: ring.color, transparent: true, opacity: 0, depthWrite: false }),
         );
-        pulse.scale.setScalar(0.2);
+        pulse.scale.setScalar(0.13);
         scene.add(pulse);
 
         nodes.push({ mesh, halo, line, lineMat, pulse, color: ring.color, act: 0, until: 0, phase: Math.random() });
       }
     }
 
-    /* ── dust field ─────────────────────────────────────────────── */
-    const STARS = lite ? 360 : 1100;
+    /* ── a little grey dust ─────────────────────────────────────── */
+    const STARS = lite ? 60 : 160;
     const starPos = new Float32Array(STARS * 3);
     for (let i = 0; i < STARS; i++) {
-      const r = 9 + Math.random() * 34;
+      const r = 5 + Math.random() * 14;
       const th = Math.random() * Math.PI * 2;
       const ph = Math.acos(2 * Math.random() - 1);
       starPos[i * 3] = r * Math.sin(ph) * Math.cos(th);
@@ -226,7 +251,7 @@ export default function HeroScene({ progress, onReady }: { progress: MotionValue
     starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
     const stars = new THREE.Points(
       starGeo,
-      new THREE.PointsMaterial({ size: 0.09, map: dot, color: new THREE.Color("#c8d6ea"), transparent: true, opacity: 0.55, depthWrite: false, sizeAttenuation: true }),
+      new THREE.PointsMaterial({ size: 0.05, map: dot, color: DUST, transparent: true, opacity: 0.45, depthWrite: false, sizeAttenuation: true }),
     );
     scene.add(stars);
 
@@ -305,17 +330,17 @@ export default function HeroScene({ progress, onReady }: { progress: MotionValue
         arr[0] = tmp.x; arr[1] = tmp.y; arr[2] = tmp.z;
         arr[3] = cx + (dx / len) * 1.02; arr[4] = cy + (dy / len) * 1.02; arr[5] = (dz / len) * 1.02;
         n.line.geometry.getAttribute("position").needsUpdate = true;
-        n.lineMat.opacity = n.act * 0.5;
+        n.lineMat.opacity = n.act * 0.75;
 
         n.phase = (n.phase + dt * 0.9) % 1;
         const k = n.phase;
         n.pulse.position.set(tmp.x + (arr[3] - tmp.x) * k, tmp.y + (arr[4] - tmp.y) * k, tmp.z + (arr[5] - tmp.z) * k);
-        (n.pulse.material as THREE.SpriteMaterial).opacity = n.act * Math.sin(k * Math.PI) * 0.9;
-        n.mesh.scale.setScalar(1 + n.act * 0.6);
-        (n.halo.material as THREE.SpriteMaterial).opacity = 0.18 + n.act * 0.5;
+        (n.pulse.material as THREE.SpriteMaterial).opacity = n.act * Math.sin(k * Math.PI);
+        n.mesh.scale.setScalar(1 + n.act * 0.5);
+        (n.halo.material as THREE.SpriteMaterial).opacity = 0.06 + n.act * 0.16;
       }
       const busy = nodes.reduce((s, n) => s + n.act, 0) / nodes.length;
-      (coreHalo.material as THREE.SpriteMaterial).opacity = 0.26 + busy * 0.5;
+      (coreHalo.material as THREE.SpriteMaterial).opacity = 0.1 + busy * 0.2;
 
       renderer.render(scene, camera);
       if (first) {

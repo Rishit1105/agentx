@@ -31,11 +31,11 @@ export default function Hero() {
   return (
     <section id="top" ref={ref} className="relative h-[175vh]" aria-label="Meridian">
       <div className="sticky top-0 h-dvh overflow-hidden">
-        {/* quiet light from the instrument; no neon */}
+        {/* one soft key light on the paper behind the instrument */}
         <div
           aria-hidden
           className="absolute inset-0"
-          style={{ background: "radial-gradient(60% 55% at 70% 50%, rgba(79,211,240,0.07), transparent 70%)" }}
+          style={{ background: "radial-gradient(55% 60% at 70% 48%, rgba(255,255,255,0.9), transparent 70%)" }}
         />
 
         <motion.div aria-hidden style={{ scale: sceneScale, opacity: sceneOpacity }} className="absolute inset-0 will-change-transform">
@@ -44,23 +44,23 @@ export default function Hero() {
             className="absolute left-1/2 top-[23%] h-[min(42vw,190px)] w-[min(42vw,190px)] -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity duration-700 lg:left-[70%] lg:top-1/2 lg:h-[220px] lg:w-[220px]"
             style={{
               opacity: ready ? 0 : 1,
-              background: "radial-gradient(circle at 50% 50%, rgba(79,211,240,0.06) 0 55%, rgba(79,211,240,0.38) 72%, transparent 74%)",
-              boxShadow: "0 0 0 1px rgba(79,211,240,0.25)",
+              background: "radial-gradient(circle at 34% 30%, #ffffff 0 18%, #eef1f3 55%, #c3ccd3 100%)",
+              boxShadow: "inset 0 0 0 1px rgba(20,24,31,0.7), 0 24px 48px -24px rgba(20,24,31,0.25)",
             }}
           />
           <HeroScene progress={p} onReady={() => setReady(true)} />
         </motion.div>
 
-        {/* scrim so copy stays crisp over the orbits */}
+        {/* paper scrim so copy stays crisp over the orbits */}
         <div
           aria-hidden
           className="absolute inset-0 lg:hidden"
-          style={{ background: "linear-gradient(180deg, transparent 30%, rgba(14,19,27,0.82) 52%, #0e131b 80%)" }}
+          style={{ background: "linear-gradient(180deg, transparent 28%, rgba(246,245,241,0.8) 44%, #f6f5f1 66%)" }}
         />
         <div
           aria-hidden
           className="absolute inset-0 hidden lg:block"
-          style={{ background: "linear-gradient(90deg, rgba(14,19,27,0.92) 0%, rgba(14,19,27,0.6) 38%, transparent 62%)" }}
+          style={{ background: "linear-gradient(90deg, rgba(246,245,241,0.94) 0%, rgba(246,245,241,0.7) 38%, transparent 60%)" }}
         />
 
         <motion.div
@@ -74,7 +74,7 @@ export default function Hero() {
               transition={{ duration: 0.6, ease: EASE }}
               className="lp-eyebrow flex flex-wrap items-center gap-x-3 gap-y-1"
             >
-              <span className="text-(--lp-cyan)">Voice-native paper trading</span>
+              <span className="text-(--lp-ink-2)">Voice-native paper trading</span>
               <span aria-hidden className="h-px w-6 bg-(--lp-line-2)" />
               <span>NSE · NIFTY 500</span>
             </motion.p>
@@ -88,7 +88,7 @@ export default function Hero() {
                       <span key={word} className="-mb-[0.12em] inline-block overflow-hidden pb-[0.12em] align-top">
                         <motion.span
                           className="inline-block"
-                          style={li === 1 ? { color: "var(--lp-cyan)" } : undefined}
+                          style={li === 1 ? { color: "var(--lp-muted)" } : undefined}
                           initial={reduced ? false : { y: "105%" }}
                           animate={{ y: "0%" }}
                           transition={{ duration: 0.9, ease: EASE, delay: 0.12 + i * 0.07 }}
@@ -119,10 +119,10 @@ export default function Hero() {
               transition={{ duration: 0.7, ease: EASE, delay: 0.68 }}
               className="mt-6 flex flex-wrap items-center gap-3 sm:mt-8"
             >
-              <LaunchLink className="lp-btn lp-btn-primary">
+              <LaunchLink className="lp-btn lp-btn-primary px-4 sm:px-[18px]">
                 Launch the desk <ArrowRight size={16} aria-hidden />
               </LaunchLink>
-              <a href="#demo" className="lp-btn lp-btn-ghost">
+              <a href="#demo" className="lp-btn lp-btn-ghost px-4 sm:px-[18px]">
                 <Play size={14} aria-hidden /> Watch it work
               </a>
             </motion.div>
@@ -131,7 +131,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: EASE, delay: 0.85 }}
-              className="mt-6 sm:mt-8 [@media(max-height:719px)]:hidden"
+              className="lp-hero-ticker mt-6 sm:mt-8"
             >
               <VoiceTicker />
             </motion.div>
@@ -146,7 +146,7 @@ export default function Hero() {
           <span className="lp-eyebrow">Scroll to zoom in</span>
           <span className="relative h-10 w-px overflow-hidden bg-(--lp-line-2)">
             <motion.span
-              className="absolute inset-x-0 top-0 h-3 bg-(--lp-cyan)"
+              className="absolute inset-x-0 top-0 h-3 bg-(--lp-ink)"
               animate={reduced ? undefined : { y: [-12, 40] }}
               transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
             />

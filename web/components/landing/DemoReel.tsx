@@ -39,7 +39,7 @@ export default function DemoReel() {
   });
 
   return (
-    <section id="demo" ref={ref} aria-label="Watch Meridian work" className="lp-anchor relative h-[520vh] bg-(--lp-bg-2) md:h-[560vh]">
+    <section id="demo" ref={ref} aria-label="Watch Meridian work" className="lp-anchor lp-soft relative h-[520vh] border-t border-(--lp-line) md:h-[560vh]">
       <div className="sticky top-0 flex h-dvh flex-col overflow-hidden pb-4 pt-[76px] sm:pb-6">
         <div className="lp-wrap flex shrink-0 flex-col gap-3 md:flex-row md:items-end md:justify-between md:gap-8">
           <div className="min-w-0 md:max-w-[640px]">
@@ -57,7 +57,7 @@ export default function DemoReel() {
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.35, ease: EASE }}
                 >
-                  <h2 className="text-balance text-[clamp(1.3rem,1rem+1.4vw,2.2rem)] font-semibold leading-tight tracking-[-0.03em]">
+                  <h2 className="lp-display text-balance text-[clamp(1.3rem,1rem+1.4vw,2.2rem)] leading-tight">
                     {CAPTIONS[scene].h}
                   </h2>
                   <p className="mt-1 hidden text-pretty text-[14.5px] leading-relaxed text-(--lp-ink-2) sm:block">{CAPTIONS[scene].p}</p>
@@ -70,9 +70,10 @@ export default function DemoReel() {
               <li
                 key={sc.title}
                 aria-current={i === scene ? "step" : undefined}
-                className="rounded-full border px-2.5 py-1 text-[11.5px] transition-colors duration-300"
+                className="rounded-md border px-2.5 py-1 text-[11.5px] transition-colors duration-300"
                 style={{
-                  borderColor: i === scene ? "var(--lp-cyan)" : "var(--lp-line)",
+                  borderColor: i === scene ? "var(--lp-ink)" : "var(--lp-line)",
+                  background: i === scene ? "var(--lp-surface)" : "transparent",
                   color: i === scene ? "var(--lp-ink)" : i < scene ? "var(--lp-ink-2)" : "var(--lp-faint)",
                 }}
               >
@@ -84,7 +85,7 @@ export default function DemoReel() {
 
         <div className="lp-wrap mt-3 h-0.5 shrink-0 sm:mt-4">
           <div className="h-full overflow-hidden rounded-full bg-(--lp-line)">
-            <motion.div className="h-full origin-left bg-(--lp-cyan)" style={{ scaleX: bar }} />
+            <motion.div className="h-full origin-left bg-(--lp-ink)" style={{ scaleX: bar }} />
           </div>
         </div>
 

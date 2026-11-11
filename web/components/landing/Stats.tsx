@@ -44,7 +44,7 @@ function Count({ to, prefix, suffix }: { to: number; prefix: string; suffix: str
 
 export default function Stats() {
   return (
-    <section aria-label="Meridian in numbers" className="lp-light relative border-y border-(--lp-line)">
+    <section aria-label="Meridian in numbers" className="relative border-t border-(--lp-line)">
       <div className="lp-wrap py-16 sm:py-20">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <p className="lp-eyebrow">By the numbers</p>

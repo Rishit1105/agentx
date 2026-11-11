@@ -1,9 +1,12 @@
 "use client";
 import { useRef } from "react";
 import { motion, useScroll, useSpring, useTransform } from "motion/react";
-import { CalendarClock, FileDown, Landmark, Receipt, Scale } from "lucide-react";
+import { CalendarClock, FileDown, Landmark, Receipt } from "lucide-react";
 import { useScrollRoot } from "./context";
 import { EASE, SectionHeader } from "./ui";
+import TimeMachineFan from "./TimeMachineFan";
+import VideoFrame from "./VideoFrame";
+import { VIDEOS } from "./videos";
 
 /* Illustrative 60-session equity curves (rebased to 100). Endpoints are fixed; the wiggle vanishes at both ends. */
 const N = 60;
@@ -52,7 +55,7 @@ export default function Backtest() {
   const verdictY = useTransform(draw, [0.85, 1], [10, 0]);
 
   return (
-    <section id="backtest" aria-label="Backtest" className="lp-anchor lp-light relative border-y border-(--lp-line)">
+    <section id="backtest" aria-label="Backtest" className="lp-anchor lp-white relative border-t border-(--lp-line)">
       <div className="lp-wrap py-24 sm:py-32">
         <SectionHeader
           eyebrow="Backtest lab"
@@ -94,7 +97,7 @@ export default function Backtest() {
               </svg>
               <motion.div
                 style={{ opacity: verdict, y: verdictY }}
-                className="absolute left-2 top-2 max-w-[78%] rounded-xl border border-(--lp-amber)/50 bg-(--lp-surface) px-3 py-2 shadow-sm sm:left-4 sm:top-3"
+                className="absolute left-2 top-2 max-w-[78%] rounded-lg border border-(--lp-amber)/50 bg-(--lp-surface) px-3 py-2 shadow-(--lp-shadow) sm:left-4 sm:top-3"
               >
                 <p className="lp-eyebrow text-[10px] text-(--lp-amber)">Honest verdict</p>
                 <p className="mt-0.5 text-[14px] font-semibold leading-snug">No demonstrated edge</p>
@@ -135,6 +138,18 @@ export default function Backtest() {
           </div>
         </div>
 
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+          <TimeMachineFan />
+          <div className="min-w-0">
+            <p className="lp-eyebrow">The benchmark</p>
+            <h3 className="lp-h3 mt-3 text-balance">Measured against NIFTY 50, not against nothing.</h3>
+            <p className="mt-3 text-pretty text-[14.5px] leading-relaxed text-(--lp-ink-2)">
+              If a strategy can&apos;t beat simply holding the index, it isn&apos;t an edge. Here is where that index came from.
+            </p>
+            <VideoFrame video={VIDEOS.nifty50} size="sm" className="mt-6" />
+          </div>
+        </div>
+
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {[
             { icon: Receipt, h: "Indian charges, modelled", p: "Brokerage, STT, exchange, SEBI, GST and stamp duty on every simulated fill.", chips: CHARGES },
@@ -149,7 +164,7 @@ export default function Backtest() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.4 }}
                 transition={{ duration: 0.5, ease: EASE, delay: i * 0.07 }}
-                className="min-w-0 rounded-2xl border border-(--lp-line) p-5"
+                className="min-w-0 rounded-xl border border-(--lp-line) bg-(--lp-surface) p-5"
               >
                 <Icon size={17} className="text-(--lp-ink-2)" aria-hidden />
                 <p className="mt-4 text-[15px] font-semibold">{f.h}</p>
@@ -163,9 +178,6 @@ export default function Backtest() {
             );
           })}
         </div>
-        <p className="mt-6 flex items-center gap-2 text-[12.5px] text-(--lp-muted)">
-          <Scale size={13} aria-hidden /> Also: the Time Machine stress-tests each plan across 10,000 Monte-Carlo sessions before you take it.
-        </p>
       </div>
     </section>
   );

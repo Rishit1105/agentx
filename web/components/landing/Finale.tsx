@@ -10,61 +10,63 @@ import OrreryMock from "./demo/OrreryMock";
 /** The real Command Deck, framed in a browser window, at rest. */
 function DeckWindow() {
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-[#0b1017]">
-      <div className="flex h-10 shrink-0 items-center gap-3 border-b border-white/[0.08] bg-[#121924] px-4">
+    <div className="lp-paper flex h-full w-full flex-col overflow-hidden">
+      <div className="flex h-10 shrink-0 items-center gap-3 border-b border-(--lp-line) bg-(--lp-surface-2) px-4">
         <span className="flex gap-1.5" aria-hidden>
-          <span className="h-2.5 w-2.5 rounded-full bg-[#ff6f7b]/70" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#f0b45e]/70" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#4fd49b]/70" />
+          <span className="h-2.5 w-2.5 rounded-full bg-(--lp-line-2)" />
+          <span className="h-2.5 w-2.5 rounded-full bg-(--lp-line-2)" />
+          <span className="h-2.5 w-2.5 rounded-full bg-(--lp-line-2)" />
         </span>
-        <span className="lp-mono mx-auto flex min-w-0 max-w-[60%] items-center gap-2 truncate rounded-md border border-white/[0.08] bg-[#0e131b] px-3 py-1 text-[11px] text-[#8794a6]">
+        <span className="lp-mono mx-auto flex min-w-0 max-w-[60%] items-center gap-2 truncate rounded-md border border-(--lp-line) bg-(--lp-surface) px-3 py-1 text-[11px] text-(--lp-muted)">
           <Lock size={10} aria-hidden className="shrink-0" />
           <span className="truncate">localhost:3000/deck</span>
         </span>
         <span className="w-[46px]" aria-hidden />
       </div>
 
-      <div className="flex h-11 shrink-0 items-center gap-4 border-b border-white/[0.06] px-4 text-[12px] text-[#8794a6]">
-        <span className="flex items-center gap-2 text-[#eef2f7]"><OrbMark size={14} /><span className="display text-[11px] font-semibold tracking-[0.2em]">MERIDIAN</span></span>
-        <span className="hidden text-[#eef2f7] sm:inline">Command Deck</span>
+      <div className="flex h-11 shrink-0 items-center gap-4 border-b border-(--lp-line) bg-(--lp-surface) px-4 text-[12px] text-(--lp-muted)">
+        <span className="flex items-center gap-2 text-(--lp-ink)"><OrbMark size={14} /><span className="lp-display text-[11px] font-semibold tracking-[0.12em]">MERIDIAN</span></span>
+        <span className="hidden font-medium text-(--lp-ink) sm:inline">Command Deck</span>
         <span className="hidden md:inline">Trade Studio</span>
         <span className="hidden md:inline">Backtest Lab</span>
         <span className="hidden lg:inline">Ledger</span>
-        <span className="lp-mono ml-auto rounded-full border border-[#4fd49b]/40 px-2 py-0.5 text-[10px] tracking-[0.12em] text-[#4fd49b]">PAPER</span>
+        <span className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-(--lp-line-2) px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.06em] text-(--lp-ink-2)">
+          <span className="h-1.5 w-1.5 rounded-full bg-(--lp-mint)" /> Paper
+        </span>
       </div>
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.3fr)_minmax(0,0.8fr)] sm:p-4">
-        <div className="hidden min-h-0 flex-col items-center justify-center rounded-xl border border-white/[0.07] p-4 sm:flex">
+        <div className="hidden min-h-0 flex-col items-center justify-center rounded-xl border border-(--lp-line) bg-(--lp-surface) p-4 sm:flex">
           <MiniOrb state="listening" size={96} />
-          <p className="lp-eyebrow mt-4 text-[10px] text-[#4fd3f0]">Listening</p>
-          <p className="mt-1 text-center text-[12px] text-[#8794a6]">Say “Hey Meridian”</p>
+          <p className="lp-eyebrow mt-4 text-[10px] text-(--lp-cyan)">Listening</p>
+          <p className="mt-1 text-center text-[12px] text-(--lp-muted)">Say “Hey Meridian”</p>
         </div>
-        <div className="flex min-h-0 items-center justify-center rounded-xl border border-white/[0.07] p-2">
+        <div className="flex min-h-0 items-center justify-center rounded-xl border border-(--lp-line) bg-(--lp-surface) p-2">
           <OrreryMock active={["scanner", "risk", "sentinel"]} labels={false} className="h-full max-h-full w-full" />
         </div>
-        <div className="hidden min-h-0 flex-col gap-3 rounded-xl border border-white/[0.07] p-4 md:flex">
+        <div className="hidden min-h-0 flex-col gap-3 rounded-xl border border-(--lp-line) bg-(--lp-surface) p-4 md:flex">
           <div>
             <p className="lp-eyebrow text-[10px]">Paper balance</p>
-            <p className="lp-mono mt-1 text-[clamp(1rem,0.8rem+0.8vw,1.4rem)] font-semibold text-[#eef2f7]">₹5,00,000</p>
+            <p className="lp-mono mt-1 text-[clamp(1rem,0.8rem+0.8vw,1.4rem)] font-semibold text-(--lp-ink)">₹5,00,000</p>
           </div>
           <p className="lp-eyebrow text-[10px]">Risk reservoir</p>
           <div className="flex min-h-0 flex-1 items-end gap-3">
-            <div className="relative h-full min-h-[60px] w-10 overflow-hidden rounded-lg border border-white/10">
-              <div className="absolute inset-x-0 bottom-0 h-[78%] bg-[#4fd3f0]/25" />
-              <div className="absolute inset-x-0 bottom-[78%] h-px bg-[#4fd3f0]" />
+            <div className="relative h-full min-h-[60px] w-10 overflow-hidden rounded-lg border border-(--lp-line-2)">
+              <div className="absolute inset-x-0 bottom-0 h-[78%] bg-(--lp-cyan-soft)" />
+              <div className="absolute inset-x-0 bottom-[78%] h-px bg-(--lp-cyan)" />
             </div>
-            <div className="min-w-0 space-y-1 text-[11px] text-[#8794a6]">
-              <p><span className="lp-mono text-[#eef2f7]">₹7,500</span> day limit</p>
-              <p><span className="lp-mono text-[#eef2f7]">₹2,500</span> per trade</p>
-              <p><span className="lp-mono text-[#eef2f7]">0 / 3</span> trades</p>
+            <div className="min-w-0 space-y-1 text-[11px] text-(--lp-muted)">
+              <p><span className="lp-mono text-(--lp-ink)">₹7,500</span> day limit</p>
+              <p><span className="lp-mono text-(--lp-ink)">₹2,500</span> per trade</p>
+              <p><span className="lp-mono text-(--lp-ink)">0 / 3</span> trades</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="shrink-0 px-3 pb-3 sm:px-4 sm:pb-4">
-        <div className="flex h-11 items-center gap-3 rounded-full border border-white/10 bg-[#121924] px-4 text-[13px] text-[#8794a6]">
-          <Mic size={15} className="shrink-0 text-[#4fd3f0]" aria-hidden />
+        <div className="flex h-11 items-center gap-3 rounded-[10px] border border-(--lp-line-2) bg-(--lp-surface) px-4 text-[13px] text-(--lp-muted)">
+          <Mic size={15} className="shrink-0 text-(--lp-cyan)" aria-hidden />
           <span className="truncate">Ask Meridian, or hold space to talk…</span>
         </div>
       </div>
@@ -118,7 +120,7 @@ export default function Finale() {
   });
 
   return (
-    <section ref={ref} aria-label="Open the Command Deck" className="relative h-[300vh]">
+    <section ref={ref} aria-label="Open the Command Deck" className="relative h-[300vh] border-t border-(--lp-line)">
       <div className="sticky top-0 h-dvh overflow-hidden">
         <motion.div style={{ opacity: copyOpacity, y: copyY }} className="lp-wrap relative z-10 pt-24 text-center sm:pt-28">
           <p className="lp-eyebrow">The desk is listening</p>
@@ -134,7 +136,7 @@ export default function Finale() {
           <motion.div
             ref={frame}
             style={{ scale, y, borderRadius: radius }}
-            className="h-[min(600px,50dvh)] w-[min(1080px,calc(100%-32px))] overflow-hidden border border-white/10 shadow-[0_50px_100px_-40px_rgba(0,0,0,0.9)] will-change-transform"
+            className="h-[min(600px,50dvh)] w-[min(1080px,calc(100%-32px))] overflow-hidden border border-(--lp-line-2) shadow-[0_1px_2px_rgba(20,24,31,0.06),0_40px_80px_-40px_rgba(20,24,31,0.3)] will-change-transform"
           >
             <DeckWindow />
           </motion.div>
@@ -142,10 +144,10 @@ export default function Finale() {
 
         <motion.p
           style={{ opacity: hintOpacity }}
-          className="lp-mono pointer-events-none absolute inset-x-0 bottom-8 text-center text-[12px] tracking-[0.14em] text-[#eef2f7]"
+          className="lp-eyebrow pointer-events-none absolute inset-x-0 bottom-8 text-center text-(--lp-ink-2)"
           aria-hidden
         >
-          OPENING THE DESK…
+          Opening the desk…
         </motion.p>
       </div>
     </section>

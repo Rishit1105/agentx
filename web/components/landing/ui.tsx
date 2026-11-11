@@ -31,7 +31,7 @@ export function Wordmark() {
   return (
     <span className="flex items-center gap-2.5">
       <OrbMark size={20} />
-      <span className="display text-[15px] font-semibold tracking-[0.2em]">MERIDIAN</span>
+      <span className="lp-display text-[15px] font-semibold tracking-[0.12em]">MERIDIAN</span>
     </span>
   );
 }

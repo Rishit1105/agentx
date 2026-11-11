@@ -5,6 +5,9 @@ import { LAYERS, LIMITS } from "./data";
 import { useScrollRoot } from "./context";
 import { Bubble, SectionHeader, TONE, TONE_SOFT } from "./ui";
 import HoldToHalt from "./HoldToHalt";
+import RiskDial from "./RiskDial";
+import VideoFrame from "./VideoFrame";
+import { VIDEOS } from "./videos";
 
 const GAP = 12;
 
@@ -43,7 +46,7 @@ export default function Safety() {
   const p = useSpring(scrollYProgress, { stiffness: 110, damping: 26, mass: 0.5 });
 
   return (
-    <section id="safety" aria-label="Safety" className="lp-anchor lp-light lp-cool relative border-y border-(--lp-line)">
+    <section id="safety" aria-label="Safety" className="lp-anchor lp-white relative border-t border-(--lp-line)">
       <div className="lp-wrap py-24 sm:py-32">
         <SectionHeader
           eyebrow="Five defence layers"
@@ -82,6 +85,19 @@ export default function Safety() {
                 <Bubble who="meridian" tone="mint">Done. Daily loss limit is now ₹5,000 for today.</Bubble>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className="mt-16 grid gap-10 sm:mt-20 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:gap-14">
+          <RiskDial />
+          <div className="min-w-0">
+            <p className="lp-eyebrow">Why now</p>
+            <h3 className="lp-h3 mt-3 text-balance">Regulators are asking for guard rails too.</h3>
+            <p className="mt-3 text-pretty text-[14.5px] leading-relaxed text-(--lp-ink-2)">
+              As SEBI opens algorithmic trading to retail investors, the debate is about limits, approvals and audit trails.
+              Meridian is built around exactly those, on paper.
+            </p>
+            <VideoFrame video={VIDEOS.algoGuardrails} size="sm" className="mt-6" />
           </div>
         </div>
       </div>

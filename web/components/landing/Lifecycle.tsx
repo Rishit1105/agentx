@@ -62,7 +62,7 @@ function Rail() {
             title={<>Fifteen steps. <span className="text-(--lp-muted)">Every one on the record.</span></>}
           />
           <div className="mt-8 h-px w-full bg-(--lp-line)">
-            <motion.div className="h-px origin-left bg-(--lp-cyan)" style={{ scaleX: fill }} />
+            <motion.div className="h-px origin-left bg-(--lp-ink)" style={{ scaleX: fill }} />
           </div>
         </div>
         <motion.ol ref={track} style={{ x }} className="mt-10 flex w-max gap-4 pl-[max(32px,calc((100vw-1200px)/2+32px))] pr-8 will-change-transform">
@@ -110,7 +110,7 @@ function Timeline() {
 
 export default function Lifecycle() {
   return (
-    <section id="how" aria-label="How it works" className="lp-anchor relative bg-(--lp-bg-2)">
+    <section id="how" aria-label="How it works" className="lp-anchor lp-soft relative border-t border-(--lp-line)">
       <Rail />
       <Timeline />
     </section>

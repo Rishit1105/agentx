@@ -59,21 +59,21 @@ export default function DeckMock({ scene }: { scene: number }) {
   const planned = scene >= 3;
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[18px] border border-(--lp-line-2) bg-(--lp-bg) shadow-[0_40px_80px_-40px_rgba(0,0,0,0.8)]">
+    <div className="lp-paper flex h-full min-h-0 flex-col overflow-hidden rounded-[16px] border border-(--lp-line-2) shadow-[0_1px_2px_rgba(20,24,31,0.06),0_32px_64px_-32px_rgba(20,24,31,0.28)]">
       {/* app bar */}
-      <div className="flex h-11 shrink-0 items-center gap-3 border-b border-(--lp-line) px-3 sm:px-4">
+      <div className="flex h-11 shrink-0 items-center gap-3 border-b border-(--lp-line) bg-(--lp-surface) px-3 sm:px-4">
         <span className="flex gap-1.5" aria-hidden>
           <span className="h-2.5 w-2.5 rounded-full bg-(--lp-line-2)" />
           <span className="h-2.5 w-2.5 rounded-full bg-(--lp-line-2)" />
           <span className="h-2.5 w-2.5 rounded-full bg-(--lp-line-2)" />
         </span>
-        <span className="display hidden text-[11px] font-semibold tracking-[0.2em] text-(--lp-ink-2) sm:inline">MERIDIAN</span>
+        <span className="lp-display hidden text-[11px] font-semibold tracking-[0.12em] text-(--lp-ink-2) sm:inline">MERIDIAN</span>
         <span className="hidden text-[12px] text-(--lp-muted) md:inline">Command Deck</span>
         <span className="lp-mono ml-auto flex min-w-0 items-center gap-2 text-[11px] text-(--lp-ink-2)">
           <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-(--lp-mint)" />
           <span className="truncate">10:42:18 IST · Entry window</span>
         </span>
-        <span className="lp-mono hidden rounded-full border border-(--lp-mint)/40 px-2 py-0.5 text-[10px] tracking-[0.12em] text-(--lp-mint) sm:inline">PAPER</span>
+        <span className="lp-mono hidden rounded-full border border-(--lp-mint)/40 px-2 py-0.5 text-[10px] tracking-[0.06em] text-(--lp-mint) sm:inline">PAPER</span>
       </div>
 
       <div className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[210px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_240px]">
