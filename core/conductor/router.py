@@ -229,6 +229,11 @@ def route(raw: str, *, universe: set[str], pending: bool) -> Intent:
         return I("confirm_no")
     if re.match(r"^(ok|okay|sure|go ahead|do it|go|fine|alright)\b", t) and len(t.split()) <= 3:
         return I("confirm_invalid") if pending else I("yes_no_ticket")
+    m = re.search(r"\bwhat (?:if|happens if) i (?:buy|bought|get)\s+(\w+(?:\s\w+)?)\s+(?:shares? (?:of )?)?(.+)$", t)
+    if m and number(m.group(1)) is not None:
+        return I("whatif", symbol=find_ticker(m.group(2), universe), qty=int(number(m.group(1))))
+    if re.search(r"\b(sectors?|heat ?map|market breadth|breadth|advancers|which sectors)\b", t):
+        return I("sectors")
     auto = automation_intent(t, universe)
     if auto:
         return I(auto) if isinstance(auto, str) else I(auto[0], **auto[1])

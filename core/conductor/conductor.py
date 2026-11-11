@@ -202,6 +202,24 @@ class Conductor:
             return "There's no ticket waiting. Ask me to plan a trade first."
         if n == "briefing":
             return await self.briefing()
+        if n == "whatif":
+            if not s.get("symbol"):
+                return "Which stock? Try: what if I buy 300 Infosys."
+            from ..services import whatif
+            try:
+                r = whatif.simulate(d, s["symbol"], qty=s.get("qty"))
+            except whatif.WhatIfError as e:
+                return f"I can't simulate that: {e}."
+            d.bus.emit("whatif.result", r, actor="risk")
+            return whatif.speak(r)
+        if n == "sectors":
+            mm = d.marketmap.snapshot()
+            if not mm["sectors"]:
+                return "No bars yet; sectors fill in after the first five minutes."
+            top = sorted(mm["sectors"], key=lambda x: -x["chg"])
+            return (f"The tape is {mm['mood']}: {mm['advancers']} advancing, {mm['decliners']} declining. Strongest: "
+                    f"{top[0]['sector']} {top[0]['chg']:+.2f}%, led by {top[0]['leader']}. Weakest: {top[-1]['sector']} "
+                    f"{top[-1]['chg']:+.2f}%.")
         if n == "automations_list":
             rules = d.automations.list()
             on = [r for r in rules if r["enabled"]]
