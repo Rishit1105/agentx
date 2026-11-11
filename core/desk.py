@@ -23,6 +23,7 @@ from .costs import inr
 from .policy import Mandates, Policy
 from .services import backtester as bt
 from .services.automations import Automations
+from .services.marketmap import MarketMap
 from .services.journalist import Journalist
 from .services.sentinel import Sentinel
 from .services.strategist import Strategist
@@ -78,7 +79,8 @@ class Desk:
         self._risk_sig = None
         self.last_scan: dict | None = None
         self.bt_reports: dict[str, dict] = {}
-        self.automations = Automations(self)      # "when X, do Y" rules on the virtual clock
+        self.automations = Automations(self)
+        self.marketmap = MarketMap(market)          # sector heatmap + breadth      # "when X, do Y" rules on the virtual clock
 
     # ================================================================== boot / replay
     def boot(self):

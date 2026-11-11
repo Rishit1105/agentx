@@ -16,7 +16,7 @@ from .config import ENV
 from .conductor.conductor import Conductor
 from .desk import AGENTS, Desk
 from .market import market
-from .services import scorecard
+from .services import scorecard, whatif
 from .services.automations import TEMPLATES, AutomationError
 from .voice.stt import stt
 from .voice.tts_client import TTS_DIR, tts
@@ -315,6 +315,20 @@ async def limits(body: dict = Body(...)):
 async def tool(name: str, body: dict = Body(default={})):
     """Run a tool manually (dev/debug); still goes through Policy."""
     return await conductor.exec_tool(name, body)
+
+
+@app.post("/api/whatif")
+async def what_if(body: dict = Body(...)):
+    try:
+        return whatif.simulate(desk, body.get("symbol", ""), qty=body.get("qty"), stop=body.get("stop"),
+                               entry=body.get("entry"), gap_pct=float(body.get("gap_pct", 1.0)))
+    except whatif.WhatIfError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.get("/api/market/map")
+async def market_map():
+    return desk.marketmap.snapshot()
 
 
 @app.get("/api/scorecard")
