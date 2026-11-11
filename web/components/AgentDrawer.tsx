@@ -7,7 +7,7 @@ import { useM } from "@/lib/store";
 import { LABEL } from "./Orrery";
 
 const ROLE: Record<string, string> = {
-  scanner: "Scans the NIFTY 100 (or ~2,000 NSE equities) for opening-range breakouts and daily patterns.",
+  scanner: "Scans the NIFTY 500 (or ~2,000 NSE equities) for opening-range breakouts and daily patterns.",
   news: "Google News India headlines for each NSE company, tagged by what moves price (earnings, deal…).",
   entry: "Watches a setup bar by bar: waiting / triggered / expired.",
   exit: "Sets the stop and target before entry, and the flat-by time.",

@@ -29,7 +29,7 @@ const readSplit = () => { try { return localStorage.getItem(SPLIT_KEY) === "1"; 
 function SplitToggle({ on, set }: { on: boolean; set: (v: boolean) => void }) {
   return (
     <button onClick={() => { const v = !on; set(v); try { localStorage.setItem(SPLIT_KEY, v ? "1" : "0"); } catch {} }}
-      className={clsx("h-8 px-2.5 flex items-center gap-1.5 rounded-full border text-[11px]", on ? "border-cyan/60 text-cyan bg-cyan/10" : "border-line-2 text-muted hover:text-ink")}
+      className={clsx("hidden lg:flex h-8 px-2.5 shrink-0 items-center gap-1.5 rounded-full border text-[11px]", on ? "border-cyan/60 text-cyan bg-cyan/10" : "border-line-2 text-muted hover:text-ink")}
       aria-pressed={on} title="Show the Kite dashboard next to Meridian, so the agents and the broker are visible together">
       <Columns2 size={14} />Kite
     </button>
@@ -74,23 +74,23 @@ function ClockChip() {
   const [ph, col] = PHASE[clock.phase] || [clock.phase, "#7d8a9c"];
   const ctl = (b: any) => api.post("/api/replay/control", b).catch(() => {});
   return (
-    <div className="flex items-center gap-2">
-      <div className="chip !h-8 !px-3 gap-2.5" title={replay ? `Replay of the real NSE session of ${replay.date} (NIFTY 100, 5-minute bars)` : ""}>
+    <div className="flex items-center gap-2 shrink-0">
+      <div className="chip !h-8 !px-3 gap-2.5 whitespace-nowrap shrink-0" title={replay ? `Replay of the real NSE session of ${replay.date} (NIFTY 500, 5-minute bars)` : ""}>
         <span className="live-dot" style={{ background: clock.paused ? "#7d8a9c" : col }} />
         <span className="num text-[13px] text-ink">{clock.now.slice(11, 19)}</span>
-        <span className="text-faint">IST</span>
-        <span className="text-[11.5px]" style={{ color: col }}>{ph}</span>
+        <span className="hidden sm:inline text-faint">IST</span>
+        <span className="hidden lg:inline text-[11.5px]" style={{ color: col }}>{ph}</span>
       </div>
       {clock.mode === "replay" ? (
-        <div className="flex items-center rounded-full border border-line-2 h-8 overflow-hidden">
-          <span className="px-2.5 text-[10.5px] tracking-[0.14em] text-amber display">NSE REPLAY {clock.date.slice(8)}/{clock.date.slice(5, 7)}</span>
+        <div className="flex items-center rounded-full border border-line-2 h-8 overflow-hidden shrink-0 whitespace-nowrap">
+          <span className="hidden 2xl:inline px-2.5 text-[10.5px] tracking-[0.14em] text-amber display">NSE REPLAY {clock.date.slice(8)}/{clock.date.slice(5, 7)}</span>
           <button className="h-8 w-8 grid place-items-center hover:bg-white/5 text-ink-2" aria-label={clock.paused ? "Play" : "Pause"}
             onClick={() => ctl({ paused: !clock.paused })}>{clock.paused ? <Play size={14} /> : <Pause size={14} />}</button>
           {[1, 10, 30, 60].map((sp) => (
             <button key={sp} onClick={() => ctl({ speed: sp, paused: false })}
-              className={clsx("h-8 px-1.5 num text-[11px] hover:text-ink", clock.speed === sp && !clock.paused ? "text-cyan" : "text-muted")}>{sp}×</button>
+              className={clsx("hidden xl:block h-8 px-1.5 num text-[11px] hover:text-ink", clock.speed === sp && !clock.paused ? "text-cyan" : "text-muted")}>{sp}×</button>
           ))}
-          <button className="h-8 w-8 grid place-items-center hover:bg-white/5 text-muted" title="Skip 15 minutes"
+          <button className="hidden md:grid h-8 w-8 place-items-center hover:bg-white/5 text-muted" title="Skip 15 minutes"
             onClick={() => { const [h, m] = clock.hhmm.split(":").map(Number); const t = h * 60 + m + 15;
               ctl({ jump: `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}` }); }}><FastForward size={14} /></button>
         </div>
@@ -108,14 +108,14 @@ function ModeSwitch() {
     try { await api.post("/api/mode", { mode: m }); } catch (e: any) { useM.getState().toast({ tone: "warn", title: "Mode", body: e.message }); }
   };
   return (
-    <div className="relative flex h-8 rounded-full border border-line-2 p-0.5 bg-black/30" role="radiogroup" aria-label="Operating mode">
+    <div className="relative hidden md:flex shrink-0 h-8 rounded-full border border-line-2 p-0.5 bg-black/30 whitespace-nowrap" role="radiogroup" aria-label="Operating mode">
       {(["observe", "advise", "autopilot"] as const).map((m) => (
         <button key={m} role="radio" aria-checked={mode === m} onClick={() => choose(m)}
-          className={clsx("relative z-10 px-3 text-[12px] capitalize rounded-full transition-colors", mode === m ? "text-[#031118] font-semibold" : "text-muted hover:text-ink")}>
+          className={clsx("relative z-10 px-2.5 xl:px-3 text-[12px] capitalize rounded-full transition-colors", mode === m ? "text-[#031118] font-semibold" : "text-muted hover:text-ink")}>
           {mode === m && <motion.span layoutId="modepill" className="absolute inset-0 -z-10 rounded-full"
             style={{ background: m === "autopilot" ? "linear-gradient(180deg,#a99dff,#7a6af0)" : "linear-gradient(180deg,#5beaff,#19bfe0)" }}
             transition={{ type: "spring", stiffness: 500, damping: 40 }} />}
-          {m === "autopilot" ? "Autopilot · paper" : m}
+          {m === "autopilot" ? <>Autopilot<span className="hidden xl:inline"> · paper</span></> : m}
         </button>
       ))}
     </div>
@@ -130,33 +130,33 @@ function TopBar({ split, setSplit }: { split: boolean; setSplit: (v: boolean) =>
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
   return (
-    <header className="relative z-30 flex items-center gap-4 h-14 px-4 border-b border-line bg-[#070a0f]/80 backdrop-blur-xl">
-      <Link href="/" className="flex items-center gap-2.5 pr-2" title="About Meridian">
+    <header className="relative z-30 flex items-center gap-2 lg:gap-3 h-14 px-3 lg:px-4 border-b border-line bg-[#111823]/80 backdrop-blur-xl">
+      <Link href="/" className="flex items-center gap-2.5 pr-1 lg:pr-2 shrink-0" title="About Meridian">
         <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden>
           <circle cx="16" cy="16" r="13" fill="none" stroke="#38e1ff" strokeOpacity=".35" />
           <circle cx="16" cy="16" r="7" fill="url(#lg)" />
           <path d="M2 16 Q16 6 30 16 Q16 26 2 16" fill="none" stroke="#e8eef6" strokeWidth="1.2" />
           <defs><radialGradient id="lg"><stop offset="0" stopColor="#fff" /><stop offset=".5" stopColor="#38e1ff" /><stop offset="1" stopColor="#0b3a48" /></radialGradient></defs>
         </svg>
-        <span className="display text-[15px] font-semibold tracking-[0.32em]">MERIDIAN</span>
+        <span className="hidden sm:inline display text-[15px] font-semibold tracking-[0.32em]">MERIDIAN</span>
       </Link>
       <ClockChip />
-      <div className="flex-1" />
-      <div className="hidden xl:flex items-center gap-4 text-[12px]">
+      <div className="flex-1 min-w-0" />
+      <div className="hidden 2xl:flex items-center gap-4 text-[12px] whitespace-nowrap">
         <span className="text-muted">Paper equity <span className="num text-ink ml-1">{fmt.usd(acct?.equity)}</span></span>
         <span className="text-muted">Day <span className={clsx("num ml-1", (acct?.day_pnl ?? 0) >= 0 ? "pos" : "neg")}>{fmt.usd(acct?.day_pnl)}</span></span>
       </div>
       <SplitToggle on={split} set={setSplit} />
       <ModeSwitch />
-      <span className="chip !h-8 display text-[10.5px] tracking-[0.18em] font-semibold text-ink-2" title="National Stock Exchange of India · INR · IST">NSE · ₹</span>
-      <span className={clsx("chip !h-8 display text-[10.5px] tracking-[0.18em] font-semibold", paper?.ok ? "text-mint border-mint/40 bg-mint/5" : "text-coral border-coral/50")}
+      <span className="hidden xl:inline-flex chip !h-8 shrink-0 whitespace-nowrap display text-[10.5px] tracking-[0.18em] font-semibold text-ink-2" title="National Stock Exchange of India · INR · IST">NSE · ₹</span>
+      <span className={clsx("chip !h-8 shrink-0 whitespace-nowrap display text-[10.5px] tracking-[0.18em] font-semibold", paper?.ok ? "text-mint border-mint/40 bg-mint/5" : "text-coral border-coral/50")}
         title="Rendered from the server's boot-time paper-only assertion, not a client constant">
-        <span className="live-dot" style={{ background: paper?.ok ? "#3ddc97" : "#ff5c6c" }} />PAPER ONLY</span>
-      <button className="h-8 w-8 grid place-items-center rounded-full border border-line-2 text-muted hover:text-ink"
+        <span className="live-dot" style={{ background: paper?.ok ? "#3ddc97" : "#ff5c6c" }} />PAPER<span className="hidden md:inline">&nbsp;ONLY</span></span>
+      <button className="hidden sm:grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line-2 text-muted hover:text-ink"
         onClick={() => { const m = !muted; setMuted(m); speaker.muted = m; if (m) speaker.stop(); }} aria-label={muted ? "Unmute voice" : "Mute voice"}
         title={mounted ? `${muted ? "Voice muted" : isSpeakerTab() ? "Speaking in this tab" : "Another Meridian tab is speaking (click here to take over)"} · ${browserVoiceName() ?? "voice loading"}` : "Voice"}>
         {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}</button>
-      <span title={connected ? "Connected to core" : "Reconnecting…"} className={connected ? "text-mint" : "text-coral"}>
+      <span title={connected ? "Connected to core" : "Reconnecting…"} className={clsx("hidden sm:inline shrink-0", connected ? "text-mint" : "text-coral")}>
         {connected ? <Wifi size={16} /> : <WifiOff size={16} />}</span>
       <HaltLever />
     </header>
@@ -168,7 +168,7 @@ function Rail() {
   const llm = useM((s) => s.st?.llm);
   const voice = useM((s) => s.st?.voice);
   return (
-    <nav className="relative z-20 hidden md:flex flex-col items-center gap-1.5 w-[64px] py-3 border-r border-line bg-[#070a0f]/60" aria-label="Screens">
+    <nav className="relative z-20 hidden md:flex flex-col items-center gap-1.5 w-[64px] py-3 border-r border-line bg-[#111823]/60" aria-label="Screens">
       {NAV.map((n) => {
         const on = path === n.href;
         return (
@@ -193,9 +193,9 @@ function Rail() {
 function MobileNav() {
   const path = usePathname();
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 flex justify-around h-14 border-t border-line bg-[#070a0f]/95 backdrop-blur" aria-label="Screens">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 flex justify-around h-14 border-t border-line bg-[#111823]/95 backdrop-blur" aria-label="Screens">
       {NAV.map((n) => (
-        <Link key={n.href} href={n.href} className={clsx("grid place-items-center w-14", path === n.href ? "text-cyan" : "text-muted")}>
+        <Link key={n.href} href={n.href} aria-label={n.label} className={clsx("grid place-items-center flex-1 min-w-0", path === n.href ? "text-cyan" : "text-muted")}>
           <n.icon size={20} /></Link>
       ))}
     </nav>
