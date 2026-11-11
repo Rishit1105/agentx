@@ -7,7 +7,7 @@ msg() { printf '{"systemMessage": "%s"}\n' "$1"; }
 
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { msg "autopush: not a git repo"; exit 0; }
 git add -A >/dev/null 2>&1
-if git diff --cached --quiet; then
+if git diff --cached --quiet >/dev/null 2>&1; then
   # nothing new to commit; still push any earlier commits that did not reach origin
   if [ -n "$(git log --oneline @{u}..HEAD 2>/dev/null)" ]; then
     git push -q origin HEAD >/dev/null 2>&1 && msg "autopush: pushed pending commits" || msg "autopush: push failed (will retry next turn)"

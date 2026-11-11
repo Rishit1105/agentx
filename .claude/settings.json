@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/autopush.sh\"",
+            "shell": "bash",
+            "timeout": 120,
+            "statusMessage": "Committing and pushing to GitHub…"
+          }
+        ]
+      }
+    ]
+  }
+}
