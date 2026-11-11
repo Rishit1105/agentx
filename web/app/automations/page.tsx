@@ -243,9 +243,9 @@ export default function Automations() {
           <p className="text-ink-2 text-[13.5px] mt-1.5 max-w-2xl">Rules that run on the market clock: briefings, breakout radar, loss guards and
             price alerts. Set them up here or just say them.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {[["Active", on, "text-mint"], ["Saved", rules.length, "text-ink"], ["Fired this session", fires, "text-cyan"]].map(([l, v, c]) => (
-            <div key={l as string} className="panel px-4 py-2.5 min-w-[110px]">
+        <div className="grid grid-cols-3 gap-2 w-full sm:w-auto">
+          {[["Active", on, "text-mint"], ["Saved", rules.length, "text-ink"], ["Fired", fires, "text-cyan"]].map(([l, v, c]) => (
+            <div key={l as string} className="panel px-3 sm:px-4 py-2.5 sm:min-w-[110px] min-w-0">
               <div className="label !text-[9.5px]">{l}</div>
               <div className={clsx("num text-2xl mt-0.5", c as string)}>{v as number}</div>
             </div>
@@ -254,8 +254,8 @@ export default function Automations() {
       </header>
 
       <section className="panel p-4 flex flex-col gap-3">
-        <div className="flex items-center gap-2"><Mic size={16} className="text-cyan" /><h2 className="display text-[16px]">Say it</h2>
-          <span className="text-[12px] text-muted">Type or speak a rule; the Conductor turns it into an automation.</span></div>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1"><Mic size={16} className="text-cyan" /><h2 className="display text-[16px] whitespace-nowrap">Say it</h2>
+          <span className="text-[12px] text-muted basis-full sm:basis-auto">Type or speak a rule; the Conductor turns it into an automation.</span></div>
         <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); speak(said); }}>
           <input className="input flex-1 min-w-0" value={said} onChange={(e) => setSaid(e.target.value)}
             placeholder="every 15 minutes scan for breakouts and watch the best one" aria-label="Spoken automation" />
