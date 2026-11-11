@@ -211,6 +211,30 @@ class PaperExchange:
         self._mark_peak()
         return {**fill, "order": self.order(order["id"])}
 
+    # ------------------------------------------------------------ stop management (tighten only)
+    def stop_leg(self, sym: str) -> dict | None:
+        return self.db.one("SELECT * FROM orders WHERE symbol=? AND leg='stop' AND status='open' AND order_class='oco'",
+                           (sym.upper(),))
+
+    def raise_stop(self, sym: str, new_stop: float, reason: str = "tighten") -> dict:
+        """Move an open position's protective stop UP (never down, never above the last price).
+        positions.stop keeps the original stop, so R multiples stay measured against the risk actually taken."""
+        sym = sym.upper()
+        with self.lock:
+            leg = self.stop_leg(sym)
+            if not leg:
+                raise ExchangeError(f"no open stop order for {sym}")
+            cur = float(leg["limit_price"])
+            px = market.price(sym)
+            new_stop = round(float(new_stop), 2)
+            if new_stop <= cur:
+                raise ExchangeError(f"stops only move up: {new_stop} is not above the current stop {cur}")
+            if px is not None and new_stop >= px:
+                raise ExchangeError(f"the new stop {new_stop} must stay below the last price {px:.2f}")
+            self.db.execute("UPDATE orders SET limit_price=?, stop=?, updated_ts=?, reason=? WHERE id=?",
+                            (new_stop, new_stop, self._now(), reason, leg["id"]))
+        return {"symbol": sym, "from": cur, "to": new_stop, "order": leg["id"], "reason": reason}
+
     # ------------------------------------------------------------ kill switch primitives
     def cancel_symbol(self, sym: str, reason: str = "cancelled") -> int:
         with self.lock:
@@ -259,6 +283,9 @@ class PaperExchange:
             p["value"] = round(px * p["qty"], 2)
             risk = p["avg_price"] - (p["stop"] or 0)
             p["r_now"] = round((px - p["avg_price"]) / risk, 2) if p.get("stop") and risk > 0 else None
+            leg = self.stop_leg(p["symbol"])
+            p["working_stop"] = float(leg["limit_price"]) if leg else p.get("stop")
+            p["at_breakeven"] = bool(leg and float(leg["limit_price"]) >= p["avg_price"])
             out.append(p)
         return out
 
