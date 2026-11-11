@@ -202,6 +202,22 @@ class Conductor:
             return "There's no ticket waiting. Ask me to plan a trade first."
         if n == "briefing":
             return await self.briefing()
+        if n == "stop_breakeven":
+            pos = [p for p in d.exchange.positions() if not s.get("symbol") or p["symbol"] == s["symbol"]]
+            if not pos:
+                return "There's no open position to protect."
+            done, why = [], []
+            for p in pos:
+                try:
+                    out = d.exchange.raise_stop(p["symbol"], p["avg_price"], reason="voice: breakeven")
+                    done.append(f"{p['symbol']} from {out['from']} to {out['to']}")
+                except Exception as e:
+                    why.append(f"{p['symbol']}: {e}")
+            if done:
+                d.audit.append("stop.raised", by="voice", moves=done)
+                d.bus.emit("order.update", {"stop_raised": done}, actor="exchange")
+                return "Stop raised to breakeven: " + "; ".join(done) + "."
+            return "I can't move it yet: " + "; ".join(why) + "."
         if n == "whatif":
             if not s.get("symbol"):
                 return "Which stock? Try: what if I buy 300 Infosys."

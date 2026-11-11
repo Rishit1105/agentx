@@ -234,6 +234,8 @@ def route(raw: str, *, universe: set[str], pending: bool) -> Intent:
         return I("whatif", symbol=find_ticker(m.group(2), universe), qty=int(number(m.group(1))))
     if re.search(r"\b(sectors?|heat ?map|market breadth|breadth|advancers|which sectors)\b", t):
         return I("sectors")
+    if re.search(r"\b(move|raise|bump|put|set)\b.*\bstops?\b.*\b(break ?even|entry|cost)\b|\bbreak ?even stop\b", t):
+        return I("stop_breakeven", symbol=find_ticker(text, universe))
     auto = automation_intent(t, universe)
     if auto:
         return I(auto) if isinstance(auto, str) else I(auto[0], **auto[1])
