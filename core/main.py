@@ -16,6 +16,7 @@ from .config import ENV
 from .conductor.conductor import Conductor
 from .desk import AGENTS, Desk
 from .market import market
+from .exchange.engine import ExchangeError
 from .services import scorecard, whatif
 from .services.automations import TEMPLATES, AutomationError
 from .voice.stt import stt
@@ -315,6 +316,24 @@ async def limits(body: dict = Body(...)):
 async def tool(name: str, body: dict = Body(default={})):
     """Run a tool manually (dev/debug); still goes through Policy."""
     return await conductor.exec_tool(name, body)
+
+
+@app.post("/api/positions/{symbol}/stop")
+async def raise_stop(symbol: str, body: dict = Body(...)):
+    """Tighten-only: move a position's protective stop up (to breakeven, or any level below the last price)."""
+    pos = desk.exchange.position(symbol)
+    if not pos:
+        raise HTTPException(404, f"no open position in {symbol.upper()}")
+    target = pos["avg_price"] if body.get("to") == "breakeven" else body.get("stop")
+    if target is None:
+        raise HTTPException(400, "give stop: <price> or to: \"breakeven\"")
+    try:
+        out = desk.exchange.raise_stop(symbol, float(target), reason=body.get("reason", "user"))
+    except ExchangeError as e:
+        raise HTTPException(400, str(e))
+    desk.audit.append("stop.raised", by="user", moves=[out])
+    desk.bus.emit("order.update", {"stop_raised": [out]}, actor="exchange")
+    return out
 
 
 @app.post("/api/whatif")
