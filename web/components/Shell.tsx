@@ -111,6 +111,8 @@ function TopBar() {
   const connected = useM((s) => s.connected);
   const acct = useM((s) => s.st?.account);
   const [muted, setMuted] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   return (
     <header className="relative z-30 flex items-center gap-4 h-14 px-4 border-b border-line bg-[#070a0f]/80 backdrop-blur-xl">
       <Link href="/" className="flex items-center gap-2.5 pr-2">
@@ -135,7 +137,7 @@ function TopBar() {
         <span className="live-dot" style={{ background: paper?.ok ? "#3ddc97" : "#ff5c6c" }} />PAPER ONLY</span>
       <button className="h-8 w-8 grid place-items-center rounded-full border border-line-2 text-muted hover:text-ink"
         onClick={() => { const m = !muted; setMuted(m); speaker.muted = m; if (m) speaker.stop(); }} aria-label={muted ? "Unmute voice" : "Mute voice"}
-        title={`${muted ? "Voice muted" : isSpeakerTab() ? "Speaking in this tab" : "Another Meridian tab is speaking (click here to take over)"} · ${browserVoiceName() ?? "voice loading"}`}>
+        title={mounted ? `${muted ? "Voice muted" : isSpeakerTab() ? "Speaking in this tab" : "Another Meridian tab is speaking (click here to take over)"} · ${browserVoiceName() ?? "voice loading"}` : "Voice"}>
         {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}</button>
       <span title={connected ? "Connected to core" : "Reconnecting…"} className={connected ? "text-mint" : "text-coral"}>
         {connected ? <Wifi size={16} /> : <WifiOff size={16} />}</span>
