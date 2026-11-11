@@ -9,15 +9,17 @@ It speaks through [OmniVoice](https://github.com/k2-fsa/OmniVoice). **Paper only
 
 | Requirement | How |
 | --- | --- |
-| Reads market data and news | Scanner (NIFTY 100 / NSE), Google News India headlines, Analyst (quarterly results in ₹ crore), NSE bulk & block deals |
+| Reads market data and news | Scanner (NIFTY 500 / NSE), sector heatmap + breadth, Google News India headlines, Analyst (quarterly results in ₹ crore), NSE bulk & block deals |
 | Picks or adapts a strategy | Strategist scores ORB / level breakout / oversold bounce on regime features + 60-session evidence; demotes after 2 stops |
 | Backtests it | Backtester replays the rule on 60 real NSE sessions with Indian intraday charges, vs buy-and-hold and the NIFTY 50; edge gate |
 | Trades a simulated account | Paper Exchange: bracket/OCO orders, gap-through stops, brokerage + STT + exchange + SEBI + GST + stamp duty |
-| Sizes positions, sets stops | Exit Planner (stop/target before entry) + Budget (whole shares, ₹2,500 max loss) |
+| Sizes positions, sets stops | Exit Planner (stop/target before entry) + Budget (whole shares, ₹2,500 max loss) + What-if simulator |
 | Daily loss limit | Risk gate counts committed max-loss (₹7,500/day); Sentinel watches live P&L and drawdown |
 | Plain-language journal | Journalist writes a Story for every trade, skip, block and halt; every number validated against the evidence |
 | Hard guardrails + kill switch | 5 layers: paper assertion, risk gate, mandate, circuit breakers, hold-to-halt (UI / voice / Esc×2 / API / auto) |
 | Backtest vs buy-and-hold | Backtest Lab + PDF export |
+| Autonomy you can see | Automations (when X, do Y) on the market clock, by click or by voice; autopilot only under a time-boxed Mandate |
+| Accountability | Discipline Scorecard grades behaviour (plan, risk, patience, explanation, outcome in R) from the session's evidence |
 
 ## Architecture
 
@@ -47,6 +49,17 @@ web (Next.js :3000)  ── WebSocket events / REST ──  core (FastAPI :8000)
   On CPU OmniVoice runs at RTF ≈ 12–23, so the fallback ladder applies: cached phrases in the OmniVoice voice, everything
   else in the browser voice (captions always). On an NVIDIA GPU it speaks live.
 
+## Highlights
+
+* **Voice-first**: "Hey Meridian, scan for breakouts" → "Plan a trade on Zomato" → "Yes, buy 482 ETERNAL". Every screen
+  action has a voice equivalent and every voice action has a visible confirmation.
+* **Guardrails the model cannot argue with**: limits live in code, voice can only tighten them, every order needs a
+  fingerprinted Risk PASS, and the kill switch works even if the LLM is down.
+* **Honest numbers**: the Journalist's numbers are validated against tool output; backtests say "no demonstrated edge"
+  when there is none.
+
+See [docs/FEATURES.md](docs/FEATURES.md) for the voice command catalogue and [docs/API.md](docs/API.md) for the REST API.
+
 ## New in this fork
 
 * **Automations** (`core/services/automations.py`, screen `/automations`): "when X, do Y" rules on the market clock.
@@ -59,7 +72,14 @@ web (Next.js :3000)  ── WebSocket events / REST ──  core (FastAPI :8000)
 * **Discipline Scorecard** (`core/services/scorecard.py`, top of `/ledger`): grades the session on behaviour (plan
   before entry, risk respected, patience, every decision explained, outcome in R), with the counts behind each score.
 * **Command palette** (⌘K or the top-bar search): jump to any screen or send any Conductor command without the mic.
-* **Landing page** at `/` (the desk moved to `/deck`), plus a brighter palette and a responsive top bar.
+* **What-if simulator** (`core/services/whatif.py`, `POST /api/whatif`, or say *"what if I buy 300 Infosys"*): max loss,
+  the limit that binds, the largest size allowed, round-trip charges and a gap-through-stop scenario, with warnings
+  when charges would eat the trade. It never creates a ticket.
+* **Market map** (`core/services/marketmap.py`, `GET /api/market/map`, or *"how are sectors doing?"*): NIFTY 500 sector
+  heatmap, value-weighted sector moves, advancers/decliners and a breadth mood, cached per virtual minute.
+* **Faster tick loop**: trader/ JSON files are parsed once per change (mtime cache) instead of on every 0.5 s tick.
+* **Landing page** at `/` (the desk moved to `/deck`): 3D Conductor orb, a scroll-driven product demo, safety,
+  automations and backtest sections, and a zoom transition into the desk.
 
 ## Run (macOS / Linux)
 
