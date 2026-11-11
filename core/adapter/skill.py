@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import copy
 import json
 import os
 import subprocess
@@ -133,14 +134,27 @@ async def run_skill(skill: str, args: list[str], *, timeout: float = 90, want_js
                       argv=argv, evidence=evidence)
 
 
+_READ_CACHE: dict[str, tuple[int, int, object]] = {}   # path -> (mtime_ns, size, parsed JSON)
+
+
 def read_trader(rel: str, default=None):
+    """Read a trader/ JSON file. Parsed results are cached by (mtime, size), so the 2 Hz tick loop no longer
+    re-parses broker.json on every call; callers get a deep copy and may mutate it freely."""
     p = WORKDIR / "trader" / rel
-    if not p.exists():
-        return default
     try:
-        return json.loads(p.read_text(encoding="utf-8"))
-    except ValueError:
+        st = p.stat()
+    except OSError:
+        _READ_CACHE.pop(str(p), None)
         return default
+    hit = _READ_CACHE.get(str(p))
+    if hit and hit[0] == st.st_mtime_ns and hit[1] == st.st_size:
+        return copy.deepcopy(hit[2])
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8"))
+    except (ValueError, OSError):
+        return default
+    _READ_CACHE[str(p)] = (st.st_mtime_ns, st.st_size, doc)
+    return copy.deepcopy(doc)
 
 
 def write_trader(rel: str, doc) -> None:
