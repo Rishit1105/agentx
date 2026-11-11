@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Activity, BookText, CandlestickChart, FlaskConical, LayoutGrid, Pause, Play, Shield, Wifi, WifiOff, X,
-  FastForward, Cpu, Volume2, VolumeX, Briefcase, Columns2, Workflow, Search } from "lucide-react";
+  FastForward, Cpu, Volume2, VolumeX, Briefcase, Columns2, Workflow, Search, Map, ClipboardCheck } from "lucide-react";
 import clsx from "clsx";
 import { api, WS_URL } from "@/lib/api";
 import { fmt, useM } from "@/lib/store";
@@ -15,13 +15,15 @@ import MandateSheet from "./MandateSheet";
 import CommandPalette from "./CommandPalette";
 
 const NAV = [
-  { href: "/deck", label: "Command Deck", icon: LayoutGrid, key: "1", screen: "deck" },
-  { href: "/studio", label: "Trade Studio", icon: CandlestickChart, key: "2", screen: "studio" },
-  { href: "/backtest", label: "Backtest Lab", icon: FlaskConical, key: "3", screen: "backtest" },
-  { href: "/portfolio", label: "My Portfolio", icon: Briefcase, key: "4", screen: "portfolio" },
-  { href: "/ledger", label: "Ledger", icon: BookText, key: "5", screen: "ledger" },
-  { href: "/automations", label: "Automations", icon: Workflow, key: "6", screen: "automations" },
-  { href: "/guardrails", label: "Guardrails", icon: Shield, key: "7", screen: "guardrails" },
+  { href: "/deck", label: "Command Deck", short: "Deck", icon: LayoutGrid, key: "1", screen: "deck" },
+  { href: "/markets", label: "Markets", short: "Markets", icon: Map, key: "2", screen: "markets" },
+  { href: "/studio", label: "Trade Studio", short: "Studio", icon: CandlestickChart, key: "3", screen: "studio" },
+  { href: "/backtest", label: "Backtest Lab", short: "Backtest", icon: FlaskConical, key: "4", screen: "backtest" },
+  { href: "/portfolio", label: "My Portfolio", short: "Portfolio", icon: Briefcase, key: "5", screen: "portfolio" },
+  { href: "/review", label: "Trade Review", short: "Review", icon: ClipboardCheck, key: "6", screen: "review" },
+  { href: "/ledger", label: "Ledger", short: "Ledger", icon: BookText, key: "7", screen: "ledger" },
+  { href: "/automations", label: "Automations", short: "Auto", icon: Workflow, key: "8", screen: "automations" },
+  { href: "/guardrails", label: "Guardrails", short: "Guard", icon: Shield, key: "9", screen: "guardrails" },
 ];
 const KITE_URL = process.env.NEXT_PUBLIC_KITE_URL || "http://localhost:3001";
 const SPLIT_KEY = "meridian.split";
@@ -172,14 +174,16 @@ function Rail() {
   const llm = useM((s) => s.st?.llm);
   const voice = useM((s) => s.st?.voice);
   return (
-    <nav className="relative z-20 hidden md:flex flex-col items-center gap-1.5 w-[64px] py-3 border-r border-line bg-white/60" aria-label="Screens">
+    <nav className="relative z-20 hidden md:flex flex-col items-center gap-1 w-[76px] py-3 border-r border-line bg-white/70 scroll" aria-label="Screens">
       {NAV.map((n) => {
         const on = path === n.href;
         return (
-          <Link key={n.href} href={n.href} title={`${n.label}  (${n.key})`}
-            className={clsx("relative h-11 w-11 grid place-items-center rounded-xl transition-all", on ? "text-cyan bg-cyan/10" : "text-muted hover:text-ink hover:bg-ink/5")}>
-            {on && <motion.span layoutId="railmark" className="absolute -left-[10px] h-6 w-[3px] rounded-r bg-cyan shadow-sm" />}
-            <n.icon size={19} strokeWidth={1.7} />
+          <Link key={n.href} href={n.href} title={`${n.label}  (${n.key})`} aria-current={on ? "page" : undefined}
+            className={clsx("relative w-[64px] py-2 flex flex-col items-center gap-1 rounded-xl transition-colors",
+              on ? "text-ink bg-ink/[0.06]" : "text-muted hover:text-ink hover:bg-ink/[0.04]")}>
+            {on && <motion.span layoutId="railmark" className="absolute -left-[6px] top-2 bottom-2 w-[3px] rounded-r bg-ink" />}
+            <n.icon size={18} strokeWidth={1.8} />
+            <span className="text-[10px] font-medium leading-none">{n.short}</span>
           </Link>
         );
       })}
@@ -197,10 +201,11 @@ function Rail() {
 function MobileNav() {
   const path = usePathname();
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 flex justify-around h-14 border-t border-line bg-white/95 backdrop-blur" aria-label="Screens">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 flex h-16 border-t border-line bg-white/95 backdrop-blur overflow-x-auto scroll" aria-label="Screens">
       {NAV.map((n) => (
-        <Link key={n.href} href={n.href} aria-label={n.label} className={clsx("grid place-items-center flex-1 min-w-0", path === n.href ? "text-cyan" : "text-muted")}>
-          <n.icon size={20} /></Link>
+        <Link key={n.href} href={n.href} aria-label={n.label} aria-current={path === n.href ? "page" : undefined}
+          className={clsx("shrink-0 w-[68px] flex flex-col items-center justify-center gap-1", path === n.href ? "text-ink" : "text-muted")}>
+          <n.icon size={19} /><span className="text-[10px] font-medium leading-none">{n.short}</span></Link>
       ))}
     </nav>
   );
@@ -298,7 +303,7 @@ function Desk({ children }: { children: React.ReactNode }) {
       )}
       <div className="flex flex-1 min-h-0">
         <Rail />
-        <main className="flex-1 min-w-0 min-h-0 overflow-auto scroll pb-16 md:pb-0">{children}</main>
+        <main className="flex-1 min-w-0 min-h-0 overflow-auto scroll pb-20 md:pb-0">{children}</main>
         {split && (
           <aside className="hidden md:flex w-[46%] min-w-[420px] border-l border-line flex-col bg-white" aria-label="Zerodha Kite">
             <div className="h-7 shrink-0 flex items-center justify-between px-3 text-[11px] bg-[#0b1018] text-muted border-b border-line">
