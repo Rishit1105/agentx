@@ -95,15 +95,19 @@ export default function Deck() {
   return (
     <div className="h-full grid gap-4 p-4 grid-cols-1 lg:grid-cols-[1fr_330px] xl:grid-cols-[250px_1fr_340px]">
       {/* left: the Sundial */}
-      <section className="panel p-4 hidden xl:flex flex-col min-h-0">
-        <div className="flex items-center justify-between"><span className="label">Session Sundial</span>
-          <Clock3 size={14} className="text-faint" /></div>
-        <div className="flex-1 min-h-0 mt-4"><Sundial stories={stories} /></div>
-        {st?.watch && Object.keys(st.watch).length > 0 && (
-          <div className="mt-3 text-[12px] text-amber">Watching {Object.keys(st.watch).join(", ")} bar by bar</div>
-        )}
-        <div className="mt-4 pt-4 border-t border-line"><SectorHeatmap compact /></div>
-      </section>
+      <aside className="hidden xl:flex flex-col gap-4 min-h-0 min-w-0">
+        <section className="panel p-4 flex flex-col flex-1 min-h-[460px] overflow-hidden">
+          <div className="flex items-center justify-between">
+            <span className="label">Session Sundial</span>
+            <Clock3 size={14} className="text-faint" />
+          </div>
+          <div className="relative flex-1 min-h-0 mt-4"><Sundial stories={stories} /></div>
+          {st?.watch && Object.keys(st.watch).length > 0 && (
+            <div className="mt-3 text-[12px] text-amber">Watching {Object.keys(st.watch).join(", ")} bar by bar</div>
+          )}
+        </section>
+        <section className="panel p-4"><SectorHeatmap compact /></section>
+      </aside>
 
       {/* centre: Orb inside the Orrery */}
       <section className="flex flex-col min-h-[640px] min-w-0">
