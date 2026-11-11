@@ -1,0 +1,3 @@
+{ "name": "Meridian", "short_name": "Meridian", "description": "Voice-native paper-trading desk",
+  "start_url": "/", "display": "standalone", "background_color": "#06080c", "theme_color": "#06080c",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }] }

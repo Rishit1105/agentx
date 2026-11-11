@@ -1,0 +1,15 @@
+.venv/
+voice-tts/.venv/
+voice-tts/voices/*.wav
+__pycache__/
+*.pyc
+.cache/
+meridian.db*
+test-meridian.db*
+trader/
+replay/generated/
+web/node_modules/
+web/.next/
+.env
+.claude/settings.local.json
+*.log
