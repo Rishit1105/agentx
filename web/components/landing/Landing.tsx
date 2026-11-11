@@ -7,6 +7,7 @@ import { OrbMark } from "./ui";
 import Nav from "./Nav";
 import Hero from "./Hero";
 import DemoReel from "./DemoReel";
+import ProductFilm from "./ProductFilm";
 import Tape from "./Tape";
 import Stats from "./Stats";
 import Problem from "./Problem";
@@ -53,6 +54,7 @@ export default function Landing() {
           <main>
             <Hero />
             <DemoReel />
+            <ProductFilm />
             <Tape />
             <Stats />
             <Problem />
