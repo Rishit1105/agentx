@@ -16,6 +16,7 @@ from .config import ENV
 from .conductor.conductor import Conductor
 from .desk import AGENTS, Desk
 from .market import market
+from .services.automations import TEMPLATES, AutomationError
 from .voice.stt import stt
 from .voice.tts_client import TTS_DIR, tts
 
@@ -313,6 +314,47 @@ async def limits(body: dict = Body(...)):
 async def tool(name: str, body: dict = Body(default={})):
     """Run a tool manually (dev/debug); still goes through Policy."""
     return await conductor.exec_tool(name, body)
+
+
+# ---------------------------------------------------------------- automations ("when X, do Y")
+@app.get("/api/automations")
+async def automations_list():
+    return {"automations": desk.automations.list(), "templates": TEMPLATES, "runs": desk.automations.runs()}
+
+
+@app.post("/api/automations")
+async def automations_create(body: dict = Body(...)):
+    try:
+        tpl = next((t for t in TEMPLATES if t["key"] == body.get("template")), None)
+        src = {**tpl, **{k: v for k, v in body.items() if k != "template"}} if tpl else body
+        return desk.automations.create(src.get("name", ""), src.get("trigger") or {}, src.get("action") or {},
+                                       cooldown_min=src.get("cooldown_min", 0), enabled=src.get("enabled", True),
+                                       template=tpl["key"] if tpl else None)
+    except AutomationError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.patch("/api/automations/{aid}")
+async def automations_update(aid: str, body: dict = Body(...)):
+    try:
+        return desk.automations.update(aid, body)
+    except AutomationError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.delete("/api/automations/{aid}")
+async def automations_delete(aid: str):
+    if not desk.automations.delete(aid):
+        raise HTTPException(404, "no such automation")
+    return {"ok": True}
+
+
+@app.post("/api/automations/{aid}/run")
+async def automations_run(aid: str):
+    try:
+        return await desk.automations.run_now(aid)
+    except AutomationError as e:
+        raise HTTPException(404, str(e))
 
 
 @app.get("/api/backtest/{symbol}")
