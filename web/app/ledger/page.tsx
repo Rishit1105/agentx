@@ -101,7 +101,7 @@ function Ledger() {
                 <li key={s.id}>
                   <button onClick={() => setSel(s.id)} className={clsx("w-full text-left pl-5 pr-3 py-2.5 rounded-r-xl relative transition-colors",
                     current?.id === s.id ? "bg-white/[0.05]" : "hover:bg-white/[0.03]")}>
-                    <span className="absolute -left-[6px] top-4 h-[11px] w-[11px] rounded-full border-2" style={{ borderColor: k.c, background: "#06080c" }} />
+                    <span className="absolute -left-[6px] top-4 h-[11px] w-[11px] rounded-full border-2" style={{ borderColor: k.c, background: "#0e131b" }} />
                     <div className="flex items-center gap-2 text-[11px]"><span style={{ color: k.c }}>{k.label}</span>
                       <span className="num text-faint">{s.vclock.slice(11, 16)}</span>
                       {s.pnl != null && <span className={clsx("num ml-auto", s.pnl >= 0 ? "pos" : "neg")}>{fmt.usd(s.pnl)}</span>}</div>

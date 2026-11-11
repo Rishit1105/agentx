@@ -4,17 +4,17 @@
    Colour is reserved for meaning: cyan = the intelligence (voice, Conductor), violet = the worker agents,
    mint = gain / healthy / armed, coral = loss / halt / block, amber = risk & caution.            */
 :root {
-  --canvas: #06080c;
-  --canvas-2: #090c12;
-  --panel: #0d1219;
-  --panel-2: #111823;
-  --panel-3: #161f2c;
-  --line: #1c2633;
-  --line-2: #263345;
-  --ink: #e8eef6;
-  --ink-2: #b4c0cf;
-  --muted: #7d8a9c;
-  --faint: #4a5667;
+  --canvas: #0e131b;
+  --canvas-2: #111823;
+  --panel: #151d29;
+  --panel-2: #1a2331;
+  --panel-3: #212c3c;
+  --line: #263345;
+  --line-2: #33445b;
+  --ink: #f2f5f9;
+  --ink-2: #c6d0dc;
+  --muted: #93a0b2;
+  --faint: #627084;
 
   --cyan: #38e1ff;
   --cyan-2: #0ea5c6;
@@ -70,8 +70,8 @@ body::before {
   content: "";
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background:
-    radial-gradient(1200px 600px at 50% -10%, rgba(56, 225, 255, 0.07), transparent 60%),
-    radial-gradient(900px 600px at 110% 110%, rgba(139, 124, 255, 0.06), transparent 60%),
+    radial-gradient(1200px 600px at 50% -10%, rgba(120, 170, 230, 0.10), transparent 60%),
+    radial-gradient(900px 600px at 110% 110%, rgba(139, 124, 255, 0.05), transparent 60%),
     linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px) 0 0 / 100% 32px,
     linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px) 0 0 / 32px 100%;
   mask-image: radial-gradient(ellipse at center, black 40%, transparent 95%);
@@ -80,13 +80,15 @@ body::before {
 .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 .display { font-family: var(--font-display); letter-spacing: -0.02em; }
 
+/* component classes live in the components layer so Tailwind utilities (hidden, sm:flex, …) can override them */
+@layer components {
 /* glass panel with a hairline and a top light edge */
 .panel {
   position: relative;
-  background: linear-gradient(180deg, rgba(17, 24, 35, 0.92), rgba(11, 15, 22, 0.92));
+  background: linear-gradient(180deg, rgba(27, 36, 50, 0.94), rgba(21, 29, 41, 0.94));
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 20px 40px -24px rgba(0,0,0,0.8);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 12px 32px -20px rgba(0,0,0,0.55);
   backdrop-filter: blur(12px);
 }
 .panel::before {
@@ -126,10 +128,11 @@ button.chip:hover { border-color: rgba(56,225,255,0.5); color: var(--ink); backg
 
 .input {
   height: 40px; width: 100%; border-radius: 10px; padding: 0 12px;
-  background: rgba(6, 8, 12, 0.7); border: 1px solid var(--line-2); color: var(--ink); outline: none;
+  background: rgba(14, 19, 27, 0.85); border: 1px solid var(--line-2); color: var(--ink); outline: none;
   transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 .input:focus { border-color: var(--cyan-2); box-shadow: 0 0 0 3px rgba(56,225,255,0.12); }
+}
 
 .scroll { overflow: auto; scrollbar-width: thin; scrollbar-color: #263345 transparent; }
 .scroll::-webkit-scrollbar { width: 6px; height: 6px; }
