@@ -13,6 +13,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   get: <T = any>(p: string) => req<T>(p),
   post: <T = any>(p: string, body?: unknown) => req<T>(p, { method: "POST", body: JSON.stringify(body ?? {}) }),
+  patch: <T = any>(p: string, body?: unknown) => req<T>(p, { method: "PATCH", body: JSON.stringify(body ?? {}) }),
   del: <T = any>(p: string) => req<T>(p, { method: "DELETE" }),
   chat: (text: string, source = "chat", confidence?: number) => req<any>("/api/chat", { method: "POST",
     body: JSON.stringify({ text, source, confidence }) }),
