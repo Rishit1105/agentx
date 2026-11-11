@@ -1,0 +1,43 @@
+import Link from "next/link";
+import { Wordmark } from "./ui";
+
+const LINKS = [
+  { href: "/deck", label: "Command Deck" },
+  { href: "/studio", label: "Trade Studio" },
+  { href: "/backtest", label: "Backtest Lab" },
+  { href: "/ledger", label: "Ledger" },
+  { href: "/guardrails", label: "Guardrails" },
+];
+
+/** Footer: the fine print, before the final zoom into the desk. */
+export default function FinePrint() {
+  return (
+    <footer className="relative border-y border-(--lp-line) bg-(--lp-bg-2)">
+      <div className="lp-wrap grid gap-10 py-16 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] md:py-20">
+        <div className="min-w-0">
+          <Wordmark />
+          <p className="mt-5 max-w-xl text-pretty text-[14px] leading-relaxed text-(--lp-ink-2)">
+            <span className="font-semibold text-(--lp-ink)">Educational prototype. Paper trading only. Not investment advice.</span>{" "}
+            Meridian never touches real money and has no live broker route. SEBI&apos;s own research found that most
+            individual intraday traders lose money. Treat every number here as a lesson, not a signal.
+          </p>
+          <p className="mt-5 text-[13px] leading-relaxed text-(--lp-muted)">
+            Built with <span className="text-(--lp-ink-2)">day-trader-skill</span> (MIT) and{" "}
+            <span className="text-(--lp-ink-2)">OmniVoice</span> (Apache-2.0). Market data for NSE India; replay of 11 Nov 2026.
+          </p>
+        </div>
+        <nav aria-label="Desk" className="min-w-0 md:justify-self-end">
+          <p className="lp-eyebrow">The desk</p>
+          <ul className="mt-4 grid grid-cols-2 gap-x-8 gap-y-2.5 text-[14px]">
+            {LINKS.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} className="text-(--lp-ink-2) transition-colors hover:text-(--lp-ink)">{l.label}</Link>
+              </li>
+            ))}
+          </ul>
+          <p className="lp-mono mt-8 text-[11px] tracking-[0.12em] text-(--lp-faint)">© 2026 MERIDIAN · SIMULATED TRADING</p>
+        </nav>
+      </div>
+    </footer>
+  );
+}
