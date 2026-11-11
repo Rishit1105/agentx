@@ -16,6 +16,7 @@ from .config import ENV
 from .conductor.conductor import Conductor
 from .desk import AGENTS, Desk
 from .market import market
+from .services import scorecard
 from .services.automations import TEMPLATES, AutomationError
 from .voice.stt import stt
 from .voice.tts_client import TTS_DIR, tts
@@ -314,6 +315,11 @@ async def limits(body: dict = Body(...)):
 async def tool(name: str, body: dict = Body(default={})):
     """Run a tool manually (dev/debug); still goes through Policy."""
     return await conductor.exec_tool(name, body)
+
+
+@app.get("/api/scorecard")
+async def scorecard_view():
+    return scorecard.build(desk)
 
 
 # ---------------------------------------------------------------- automations ("when X, do Y")
