@@ -8,7 +8,7 @@ import Orrery from "@/components/Orrery";
 import { CaptionRibbon, CommandBar, PriceLadder, RiskReservoir, Sundial } from "@/components/Instruments";
 import { useSize, useStories } from "@/lib/hooks";
 import { fmt, useM } from "@/lib/store";
-import { api } from "@/lib/api";
+import { ticketAction } from "@/lib/ticket";
 import { mic, speaker } from "@/lib/voice";
 
 const STATE_LABEL: Record<string, string> = { idle: "Standing by", listening: "Listening", thinking: "Working", speaking: "Speaking",
@@ -49,8 +49,8 @@ function TicketCard() {
       <div className="text-[12px] text-ink-2 mt-3">Max loss <span className="num text-ink">{fmt.usd(t.max_loss)}</span> · stop can fill worse in a fast market.</div>
       <div className="text-[11.5px] text-amber/90 mt-1">{t.tm_verdict}</div>
       <div className="flex gap-2 mt-4">
-        <button className="btn btn-mint flex-1" onClick={() => api.post(`/api/orders/${t.index}/approve`)}>“{t.say}”</button>
-        <button className="btn" onClick={() => api.post(`/api/orders/${t.index}/decline`)}>No</button>
+        <button className="btn btn-mint flex-1" onClick={() => ticketAction(t.index, "approve")}>“{t.say}”</button>
+        <button className="btn" onClick={() => ticketAction(t.index, "decline")}>No</button>
       </div>
       <Link href="/studio" className="mt-3 inline-flex items-center gap-1 text-[12px] text-cyan">Open in Trade Studio <ArrowUpRight size={13} /></Link>
     </motion.div>

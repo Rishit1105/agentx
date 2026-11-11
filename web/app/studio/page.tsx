@@ -7,6 +7,7 @@ import CandleChart from "@/components/CandleChart";
 import TimeMachineFan from "@/components/TimeMachineFan";
 import { useQueryParam } from "@/lib/hooks";
 import { api } from "@/lib/api";
+import { ticketAction } from "@/lib/ticket";
 import { fmt, useM } from "@/lib/store";
 
 /** IST wall time -> epoch seconds (India has no daylight saving: UTC+5:30). */
@@ -109,8 +110,8 @@ function Studio() {
                 <div className="text-[12px] text-muted mt-1">Spoken script: “Say <span className="text-ink">{ticket.say}</span> to place it.” · fingerprint <span className="num">{ticket.fingerprint}</span></div>
               </div>
               <div className="flex gap-2">
-                <button className="btn btn-mint !h-12 !px-6 !text-[15px]" onClick={() => api.post(`/api/orders/${ticket.index}/approve`)}>“{ticket.say}”</button>
-                <button className="btn !h-12" onClick={() => api.post(`/api/orders/${ticket.index}/decline`)}>No</button>
+                <button className="btn btn-mint !h-12 !px-6 !text-[15px]" onClick={() => ticketAction(ticket.index, "approve")}>“{ticket.say}”</button>
+                <button className="btn !h-12" onClick={() => ticketAction(ticket.index, "decline")}>No</button>
               </div>
             </motion.section>
           )}
