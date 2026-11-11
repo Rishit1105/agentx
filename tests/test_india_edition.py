@@ -59,7 +59,9 @@ def test_scanner_finds_nse_breakouts(wd):
     code, out, _ = run(wd, "trader-scanner", "scan.py", "orb", "--offline", F / "charts60", "--now", NOW,
                        "--min-price", "0", "--min-volume", "0", "--json")
     d = json.loads(out)
-    assert d["scanned"] == 101 and len(d["hits"]) == 26
+    # the recorded universe is the NIFTY 500 (498 symbols, one without 60 sessions of bars)
+    universe = len(json.loads((F / "manifest.json").read_text(encoding="utf-8"))["symbols"])
+    assert d["scanned"] == universe - 1 == 497 and len(d["hits"]) == 130
     assert any(h["symbol"] == "ETERNAL" and h["price"] == 370.75 for h in d["hits"])
     assert d["as_of"].endswith("IST")
 
