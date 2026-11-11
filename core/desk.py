@@ -22,6 +22,7 @@ from .market import market
 from .costs import inr
 from .policy import Mandates, Policy
 from .services import backtester as bt
+from .services.automations import Automations
 from .services.journalist import Journalist
 from .services.sentinel import Sentinel
 from .services.strategist import Strategist
@@ -77,6 +78,7 @@ class Desk:
         self._risk_sig = None
         self.last_scan: dict | None = None
         self.bt_reports: dict[str, dict] = {}
+        self.automations = Automations(self)      # "when X, do Y" rules on the virtual clock
 
     # ================================================================== boot / replay
     def boot(self):
@@ -108,6 +110,7 @@ class Desk:
         self.pending, self.watch, self.last_result = None, {}, {}
         self._flat_done = self._summary_done = None
         self.mode = self.cfg.get("meridian_mode_default", "advise")
+        self.automations.new_session()
         self.audit.append("replay.start", date=date, start=start, speed=speed)
         self.bus.emit("replay.started", {**info, "start": start, "speed": speed}, actor="clock")
         return {**info, "clock": clock.snapshot(self.cfg)}
@@ -775,6 +778,7 @@ class Desk:
         now = clock.now()
         self.exchange.on_tick()
         await self.sentinel.check()
+        await self.automations.tick()
         hhmm = now.strftime("%H:%M")
         bars = market.bars("NIFTY50") or (market.bars(market.symbols()[0]) if market.symbols() else [])
         new_bar = bool(bars) and bars[-1]["t"] != self._last_bar_t
