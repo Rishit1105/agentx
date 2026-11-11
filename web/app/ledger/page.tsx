@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { useQueryParam, useStories } from "@/lib/hooks";
 import { fmt, useM } from "@/lib/store";
 import type { Story } from "@/lib/types";
+import Scorecard from "@/components/Scorecard";
 
 const KIND: Record<string, { c: string; icon: any; label: string }> = {
   trade: { c: "#3ddc97", icon: TrendingUp, label: "Trade" }, skip: { c: "#7d8a9c", icon: CircleSlash, label: "Skip" },
@@ -83,7 +84,9 @@ function Ledger() {
   const list = stories.filter((s) => !filter || s.kind === filter);
   const current = stories.find((s) => s.id === sel) || list[0];
   return (
-    <div className="p-4 grid gap-4 lg:grid-cols-[380px_1fr] h-full min-h-0">
+    <div className="p-4 flex flex-col gap-4 lg:h-full min-h-0">
+    <Scorecard />
+    <div className="grid gap-4 lg:grid-cols-[380px_1fr] flex-1 min-h-0">
       <section className="panel p-4 flex flex-col min-h-0">
         <div className="flex items-center justify-between"><div><div className="label">Ledger</div><h1 className="display text-2xl mt-1">Every decision, explained</h1></div></div>
         <div className="flex gap-1.5 mt-4 flex-wrap">
@@ -114,6 +117,7 @@ function Ledger() {
         </div>
       </section>
       <div className="min-w-0">{current ? <StoryView s={current} /> : <div className="panel p-10 text-muted">Select a story.</div>}</div>
+    </div>
     </div>
   );
 }
