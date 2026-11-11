@@ -379,7 +379,9 @@ class Conductor:
         top = hits[0]
         lead = top
         self.last_symbol = lead["symbol"]
-        msg = (f"{res['count']} of the NIFTY 100 closed above their fifteen-minute opening range. "
+        scanned = res.get("scanned")
+        pool = f"the {scanned} NSE stocks scanned" if scanned else "the scanned NSE stocks"
+        msg = (f"{res['count']} of {pool} closed above their fifteen-minute opening range. "
                f"{lead['symbol']} is the cleanest, {lead.get('pct_over')}% over at {lead.get('price')}.")
         if then_plan:
             await self.say(msg, kind="status")
@@ -420,7 +422,7 @@ class Conductor:
             tm = t.get("tm_verdict") or ""
             tm_line = (f"The replay calls it {tm.split(':')[0].lower()}." if tm and "coin flip" in tm.lower() or
                        "break-even" in tm.lower() else (f"Time Machine: {tm.rstrip('.')}." if tm else ""))
-            if odds.get("target") is not None:
+            if odds.get("target") is not None and "first" not in tm_line.lower():   # the verdict may already quote the odds
                 tm_line += f" Target first {odds['target'] * 100:.0f}%, stop first {odds['stop'] * 100:.0f}%."
             lim = d.cfg["max_loss_per_trade_usd"]
             tail = (" Autopilot will place it under the mandate." if d.mode == "autopilot" else

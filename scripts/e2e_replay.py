@@ -46,7 +46,7 @@ def main():
     check("NSE session phases (entry window at 09:40 IST)", st["clock"]["phase"] == "entry_window" and st["clock"]["tz"] == "IST")
 
     r = say("Hey Meridian, scan for breakouts")
-    check("scan finds NIFTY 100 opening-range breakouts", "of the NIFTY 100 closed above" in (r.get("reply") or ""), r.get("reply", "")[:60])
+    check("scan finds NIFTY 500 opening-range breakouts", "of the NIFTY 100 closed above" in (r.get("reply") or ""), r.get("reply", "")[:60])
 
     r = say("plan a trade on zomato")          # spoken name -> ETERNAL
     t = c.get("/api/state").json()["ticket"] or {}
