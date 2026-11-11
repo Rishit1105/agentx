@@ -54,8 +54,7 @@ class Desk:
         self.policy = Policy(self.db, self.mandates, self.audit)
         self.exchange = PaperExchange(self.db, float(self.cfg["budget"]), self.cfg["meridian_costs"])
         self.exchange.on_fill(self._on_fill)
-        self.zerodha = ZerodhaCloneMirror(ENV["zerodha_clone_url"],
-                                          marks=lambda: {p["symbol"]: p["last"] for p in self.exchange.positions()})
+        self.zerodha = ZerodhaCloneMirror(ENV["zerodha_clone_url"], snapshot=self._kite_snapshot)
         self.exchange.on_fill(self.zerodha.on_fill)
         self.exchange.on_fill(self._redirect_to_kite)
         self.sentinel = Sentinel(self)
@@ -652,12 +651,38 @@ class Desk:
         return {"ok": True, "fill": placed["fill"] if placed else None, "repo_ticket": r.ok}
 
     # ================================================================== exchange callbacks
+    def _kite_snapshot(self) -> dict:
+        """What the Zerodha clone shows: paper account, last prices for the whole universe, pending stop/target orders."""
+        acct = self.exchange.account()
+        positions = self.exchange.positions()
+        prices = {}
+        for sym in self.market.symbols():
+            px = self.market.price(sym)
+            if px is None:
+                continue
+            prev = self.market.prev_close(sym)
+            prices[sym] = {"ltp": round(px, 2), "chg": round((px / prev - 1) * 100, 2) if prev else 0.0}
+        status = {"open": "OPEN", "cancelled": "CANCELLED", "filled": "COMPLETE"}
+        legs = [{"ref": o["id"], "parent": o["parent_id"], "name": o["symbol"], "qty": o["qty"], "price": o["limit_price"],
+                 "kind": o["leg"], "status": status.get(o["status"], "CANCELLED")}
+                for o in self.exchange.orders() if o.get("leg") in ("stop", "target")]
+        return {"account": {**acct, "margin_used": round(sum(p["avg_price"] * p["qty"] for p in positions), 2)},
+                "prices": prices, "orders": legs}
+
     def _redirect_to_kite(self, fill: dict):
-        """After an approved entry fills, send the browser to the Kite dashboard so the trade is watched there."""
-        if fill.get("side") == "buy" and fill.get("leg") == "entry" and self.zerodha.enabled and ENV["zerodha_redirect"]:
-            self.bus.emit("ui.navigate", {"screen": "kite", "symbol": fill.get("symbol"),
-                                          "url": ENV["zerodha_dashboard_url"].rstrip("/") + "/positions"},
-                          actor="exchange", persist=False)
+        """Send the browser to the Kite dashboard: on an approved entry (to watch the order being placed) and on every exit
+        (to see the SELL and the realised P&L). The web app decides between a full redirect and the split-view iframe."""
+        if not (self.zerodha.enabled and ENV["zerodha_redirect"]):
+            return
+        base = ENV["zerodha_dashboard_url"].rstrip("/")
+        if fill.get("side") == "buy" and fill.get("leg") == "entry":
+            url = base + "/"
+        elif fill.get("side") == "sell":
+            url = base + "/orders"
+        else:
+            return
+        self.bus.emit("ui.navigate", {"screen": "kite", "symbol": fill.get("symbol"), "url": url}, actor="exchange",
+                      persist=False)
 
     def _on_fill(self, fill: dict):
         if fill.get("side") != "sell":

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Activity, BookText, CandlestickChart, FlaskConical, LayoutGrid, Pause, Play, Shield, Wifi, WifiOff, X,
-  FastForward, Cpu, Volume2, VolumeX, Briefcase } from "lucide-react";
+  FastForward, Cpu, Volume2, VolumeX, Briefcase, Columns2 } from "lucide-react";
 import clsx from "clsx";
 import { api, WS_URL } from "@/lib/api";
 import { fmt, useM } from "@/lib/store";
@@ -21,6 +21,20 @@ const NAV = [
   { href: "/ledger", label: "Ledger", icon: BookText, key: "5", screen: "ledger" },
   { href: "/guardrails", label: "Guardrails", icon: Shield, key: "6", screen: "guardrails" },
 ];
+const KITE_URL = process.env.NEXT_PUBLIC_KITE_URL || "http://localhost:3001";
+const SPLIT_KEY = "meridian.split";
+const readSplit = () => { try { return localStorage.getItem(SPLIT_KEY) === "1"; } catch { return false; } };
+
+function SplitToggle({ on, set }: { on: boolean; set: (v: boolean) => void }) {
+  return (
+    <button onClick={() => { const v = !on; set(v); try { localStorage.setItem(SPLIT_KEY, v ? "1" : "0"); } catch {} }}
+      className={clsx("h-8 px-2.5 flex items-center gap-1.5 rounded-full border text-[11px]", on ? "border-cyan/60 text-cyan bg-cyan/10" : "border-line-2 text-muted hover:text-ink")}
+      aria-pressed={on} title="Show the Kite dashboard next to Meridian, so the agents and the broker are visible together">
+      <Columns2 size={14} />Kite
+    </button>
+  );
+}
+
 const PHASE: Record<string, [string, string]> = {
   pre: ["Pre-open", "#7d8a9c"], opening_range: ["Opening range", "#ffb547"], entry_window: ["Entry window", "#3ddc97"],
   no_entries: ["No new entries", "#ffb547"], flat_by: ["Flat-by", "#ff5c6c"], closed: ["Closed", "#7d8a9c"],
@@ -107,7 +121,7 @@ function ModeSwitch() {
   );
 }
 
-function TopBar() {
+function TopBar({ split, setSplit }: { split: boolean; setSplit: (v: boolean) => void }) {
   const paper = useM((s) => s.st?.paper);
   const connected = useM((s) => s.connected);
   const acct = useM((s) => s.st?.account);
@@ -131,6 +145,7 @@ function TopBar() {
         <span className="text-muted">Paper equity <span className="num text-ink ml-1">{fmt.usd(acct?.equity)}</span></span>
         <span className="text-muted">Day <span className={clsx("num ml-1", (acct?.day_pnl ?? 0) >= 0 ? "pos" : "neg")}>{fmt.usd(acct?.day_pnl)}</span></span>
       </div>
+      <SplitToggle on={split} set={setSplit} />
       <ModeSwitch />
       <span className="chip !h-8 display text-[10.5px] tracking-[0.18em] font-semibold text-ink-2" title="National Stock Exchange of India · INR · IST">NSE · ₹</span>
       <span className={clsx("chip !h-8 display text-[10.5px] tracking-[0.18em] font-semibold", paper?.ok ? "text-mint border-mint/40 bg-mint/5" : "text-coral border-coral/50")}
@@ -239,7 +254,10 @@ function NavFollower() {
   const router = useRouter();
   useEffect(() => {
     if (!navTo) return;
-    if (navTo.screen === "kite" && navTo.url) { window.location.href = navTo.url; return; }   // approved trade -> watch it on Kite
+    if (navTo.screen === "kite" && navTo.url) {   // approved trade / exit -> watch it on Kite
+      if (!readSplit()) window.location.href = navTo.url;   // in split view the Kite pane reacts on its own
+      return;
+    }
     const n = NAV.find((x) => x.screen === navTo.screen);
     if (n) router.push(n.href + (navTo.symbol ? `?symbol=${navTo.symbol}` : ""));
   }, [navTo, router]);
@@ -251,10 +269,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const kill = useM((s) => s.st?.kill.state);
   const connected = useM((s) => s.connected);
   const st = useM((s) => s.st);
+  const [split, setSplit] = useState(false);
+  useEffect(() => { setSplit(readSplit()); }, []);
   useEffect(() => { api.get("/api/state").then((s) => useM.getState().set({ st: s })).catch(() => {}); }, []);
   return (
     <div className={clsx("relative z-10 flex flex-col h-dvh", kill === "LOCKED" && "halted-frame")}>
-      <TopBar />
+      <TopBar split={split} setSplit={setSplit} />
       {kill === "LOCKED" && (
         <div className="relative z-20 flex items-center justify-center gap-3 h-9 text-[12.5px] bg-coral/12 border-b border-coral/30 text-coral">
           <span className="live-dot bg-coral" /> Desk halted — orders cancelled, positions flat, entries locked.
@@ -268,6 +288,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 min-h-0">
         <Rail />
         <main className="flex-1 min-w-0 min-h-0 overflow-auto scroll pb-16 md:pb-0">{children}</main>
+        {split && (
+          <aside className="hidden md:flex w-[46%] min-w-[420px] border-l border-line flex-col bg-white" aria-label="Zerodha Kite">
+            <div className="h-7 shrink-0 flex items-center justify-between px-3 text-[11px] bg-[#0b1018] text-muted border-b border-line">
+              <span>Zerodha Kite (clone) · live</span>
+              <a href={KITE_URL} target="_blank" rel="noreferrer" className="hover:text-cyan">open full ↗</a>
+            </div>
+            <iframe title="Zerodha Kite" src={`${KITE_URL}/positions`} className="flex-1 w-full border-0" />
+          </aside>
+        )}
       </div>
       <MobileNav />
       <Toasts />
