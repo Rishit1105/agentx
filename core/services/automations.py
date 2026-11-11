@@ -337,6 +337,10 @@ class Automations:
         try:
             if a["type"] in ENTRY_ACTIONS and d.sentinel.state != "ARMED":
                 ok, detail = False, {"skipped": f"desk is {d.sentinel.state.lower()}"}
+            elif (a["type"] in ("plan", "watch") or (a["type"] == "scan" and a.get("then") != "notify")) and \
+                    (d.pending or d.lock.locked()):
+                # never replace a ticket that is waiting for the user's yes, never race a plan in progress
+                ok, detail = False, {"skipped": "a ticket is waiting for your yes" if d.pending else "the desk is busy planning"}
             elif a["type"] == "say":
                 msg = self._fill(a["text"], facts, ctx)
                 if cond:
