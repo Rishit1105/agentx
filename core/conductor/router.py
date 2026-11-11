@@ -167,6 +167,54 @@ def find_ticker(text: str, universe: set[str]) -> str | None:
     return None
 
 
+def _auto_action(rest: str) -> dict | None:
+    """The 'do Y' half of a spoken automation."""
+    if re.search(r"\b(scan|breakouts?|setups?)\b", rest):
+        then = "plan" if re.search(r"\bplan\b", rest) else "watch" if re.search(r"\b(watch|track)\b", rest) else "notify"
+        return {"type": "scan", "then": then}
+    if re.search(r"\b(brief|briefing|good morning)\b", rest):
+        return {"type": "briefing"}
+    if re.search(r"\b(status|summary|update|recap|how am i doing|p ?& ?l)\b", rest):
+        return {"type": "summary"}
+    if re.search(r"\b(flatten|close everything|close all|exit all)\b", rest):
+        return {"type": "flatten", "symbol": "ALL"}
+    if re.search(r"\b(lock|freeze)\b", rest):
+        return {"type": "halt"}
+    return None
+
+
+def automation_intent(t: str, universe: set[str]):
+    """Spoken automations, e.g. 'every 15 minutes scan for breakouts and watch the best one',
+    'at 3 pm give me a status update', 'if I'm down 5000 lock the desk', 'list my automations'.
+    Orders are never an automation action; halt words keep their own meaning and are matched before this."""
+    if re.search(r"\b(list|show|what are|read)\b.*\bautomations?\b|\bmy automations\b", t):
+        return "automations_list"
+    m = re.match(r"^(?:every|each)\s+(\w+)\s*min(?:ute)?s?\b,?\s*(.+)$", t)
+    if m:
+        act = _auto_action(m.group(2))
+        mins = number(m.group(1))
+        if act and mins:
+            return ("automation_add", {"trigger": {"type": "every", "minutes": int(mins)}, "action": act})
+    m = re.match(r"^(?:at|by)\s+(\d{1,2})(?:[:.](\d{2}))?\s*(am|pm)?\b,?\s*(.+)$", t)
+    if m:
+        h, mm, ap = int(m.group(1)), int(m.group(2) or 0), m.group(3)
+        if ap == "pm" and h < 12:
+            h += 12
+        if ap is None and 1 <= h <= 3:     # market hours: "at 3" means 15:00
+            h += 12
+        act = _auto_action(m.group(4))
+        if act and h < 24 and mm < 60:
+            return ("automation_add", {"trigger": {"type": "time", "at": f"{h:02d}:{mm:02d}"}, "action": act})
+    m = re.search(r"\b(?:if|when|once) (?:i'?m|i am|we'?re|i get|i go) down (?:by )?(?:rs\.? ?|rupees? |₹)?([\w,]+)"
+                  r"|\b(?:if|when) i lose (?:rs\.? ?|₹)?([\w,]+)", t)
+    if m:
+        val = number((m.group(1) or m.group(2)).replace(",", ""))
+        act = _auto_action(t) or {"type": "halt"}
+        if val:
+            return ("automation_add", {"trigger": {"type": "day_pnl", "value": -abs(float(val))}, "action": act})
+    return None
+
+
 def route(raw: str, *, universe: set[str], pending: bool) -> Intent:
     text, wake = strip_wake(raw)
     t = text.lower().strip(" .!?")
@@ -181,6 +229,9 @@ def route(raw: str, *, universe: set[str], pending: bool) -> Intent:
         return I("confirm_no")
     if re.match(r"^(ok|okay|sure|go ahead|do it|go|fine|alright)\b", t) and len(t.split()) <= 3:
         return I("confirm_invalid") if pending else I("yes_no_ticket")
+    auto = automation_intent(t, universe)
+    if auto:
+        return I(auto) if isinstance(auto, str) else I(auto[0], **auto[1])
     if re.search(r"\b(re-?arm)\b", t):
         return I("rearm")
     if re.search(r"\b(help|what can you do|commands)\b", t):

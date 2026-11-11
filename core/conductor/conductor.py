@@ -202,6 +202,18 @@ class Conductor:
             return "There's no ticket waiting. Ask me to plan a trade first."
         if n == "briefing":
             return await self.briefing()
+        if n == "automations_list":
+            rules = d.automations.list()
+            on = [r for r in rules if r["enabled"]]
+            if not on:
+                return f"No automations are on. {len(rules)} are saved on the Automations screen."
+            return f"{len(on)} automation{'s' if len(on) != 1 else ''} on: " + "; ".join(r["describe"] for r in on[:5]) + "."
+        if n == "automation_add":
+            try:
+                rule = d.automations.create("", s["trigger"], s["action"], cooldown_min=0, enabled=True)
+            except Exception as e:
+                return f"I couldn't set that up: {e}."
+            return f"Automation on: {rule['describe']}. Orders still need your yes."
         if n == "scan":
             return await self.scan(then_plan=s.get("then_plan"))
         if n == "plan":

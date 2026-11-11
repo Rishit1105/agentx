@@ -36,3 +36,23 @@ def test_price_rule_plans_its_own_symbol_and_reads_well():
     t, a = validate({"type": "price", "symbol": "reliance", "op": "above", "price": 1500}, {"type": "plan"})
     assert a["symbol"] == "RELIANCE"
     assert describe(t, a) == "When RELIANCE goes above ₹1,500.00 → plan a trade on RELIANCE"
+
+
+@pytest.mark.parametrize("said, trigger, action", [
+    ("every 15 minutes scan for breakouts and watch the best one", {"type": "every", "minutes": 15},
+     {"type": "scan", "then": "watch"}),
+    ("at 3 pm give me a status update", {"type": "time", "at": "15:00"}, {"type": "summary"}),
+    ("at 9:16 good morning briefing", {"type": "time", "at": "09:16"}, {"type": "briefing"}),
+    ("if I'm down 5000 lock the desk", {"type": "day_pnl", "value": -5000.0}, {"type": "halt"}),
+    ("if I lose 5,000 flatten everything", {"type": "day_pnl", "value": -5000.0}, {"type": "flatten", "symbol": "ALL"}),
+])
+def test_spoken_automations(said, trigger, action):
+    from core.conductor.router import route
+    it = route(said, universe={"RELIANCE"}, pending=False)
+    assert it.name == "automation_add" and it.slots == {"trigger": trigger, "action": action}
+
+
+def test_halt_words_still_halt_immediately():
+    from core.conductor.router import route
+    assert route("stop everything", universe=set(), pending=False).name == "halt"
+    assert route("list my automations", universe=set(), pending=False).name == "automations_list"
