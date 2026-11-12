@@ -1,4 +1,5 @@
 "use client";
+import CompliancePanel from "@/components/CompliancePanel";
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Check, Fingerprint, Link2, Lock, Mic2, RefreshCcw, ShieldCheck, ShieldOff, TriangleAlert } from "lucide-react";
@@ -160,6 +161,7 @@ export default function Guardrails() {
           </section>
         </aside>
       </div>
+      <CompliancePanel />
     </div>
   );
 }
