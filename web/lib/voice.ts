@@ -104,9 +104,9 @@ class Speaker {
     if (this.ctx.state === "suspended") this.ctx.resume();
   }
 
-  say(id: string, n: number, engine: string, speech: string, rate = 1) {
+  say(id: string, n: number, engine: string, speech: string, rate = 1, lang = "en") {
     if (this.muted || !speakerTab) return;     // only the active tab speaks
-    if (engine === "browser") return this.browserSay(speech, rate);
+    if (lang === "hi" || engine === "browser") return this.browserSay(speech, rate, lang);
     this.queue.set(id, { n, chunks: new Array(n), next: 0, text: speech });
     this.order.push(id);
     // if OmniVoice chunks don't arrive in time, fall back so the user is never left in silence
@@ -150,12 +150,14 @@ class Speaker {
     src.start();
   }
 
-  async browserSay(text: string, rate = 1) {
+  async browserSay(text: string, rate = 1, lang = "en") {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     await voicesReady;                         // never speak before the voice is chosen (avoids the OS default voice)
     if (!speakerTab || this.muted) return;
     const u = new SpeechSynthesisUtterance(text);
-    if (chosenVoice) { u.voice = chosenVoice; u.lang = chosenVoice.lang; }
+    const hindi = lang === "hi" ? speechSynthesis.getVoices().find((v) => /^hi/i.test(v.lang)) : undefined;
+    if (lang === "hi") { u.lang = "hi-IN"; if (hindi) u.voice = hindi; }
+    else if (chosenVoice) { u.voice = chosenVoice; u.lang = chosenVoice.lang; }
     u.rate = rate; u.pitch = 1.0;
     u.onstart = () => {
       this.setSpeaking(true);

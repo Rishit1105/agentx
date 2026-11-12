@@ -58,7 +58,7 @@ function useSocket() {
           const e = JSON.parse(m.data);
           apply(e);
           if (e.type === "voice.owner") setVoiceOwner(e.payload.owner ?? null);
-          if (e.type === "voice.say") speaker.say(e.payload.id, e.payload.n, e.payload.engine, e.payload.speech, e.payload.speed);
+          if (e.type === "voice.say") speaker.say(e.payload.id, e.payload.n, e.payload.engine, e.payload.speech, e.payload.speed, e.payload.lang);
           if (e.type === "tts.chunk") speaker.chunk(e.payload.id, e.payload.seq, e.payload.url);
           if (e.type === "kill.state" && e.payload.state === "HALTING") speaker.stop();
         } catch {}
