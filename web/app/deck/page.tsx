@@ -89,16 +89,16 @@ export default function Deck() {
   const voice = useM((s) => s.voice);
   const stories = useStories();
   const [ref, size] = useSize<HTMLDivElement>();
-  const orrery = Math.max(300, Math.min(size.w - 40, size.h - 40, 620));
+  const orrery = Math.max(300, Math.min(size.w - 40, size.h - 24, 640));
   const latest = stories[0];
   const pos = st?.positions?.[0];
   const mandate = st?.mandate;
 
   return (
-    <div className="h-full grid gap-4 p-4 grid-cols-1 lg:grid-cols-[1fr_330px] xl:grid-cols-[250px_1fr_340px]">
+    <div className="grid gap-4 p-4 grid-cols-1 lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[272px_minmax(0,1fr)_340px] lg:overflow-hidden">
       {/* left: the Sundial */}
-      <aside className="hidden xl:flex flex-col gap-4 min-h-0 min-w-0">
-        <section className="panel p-4 flex flex-col flex-1 min-h-[460px] overflow-hidden">
+      <aside className="hidden xl:flex flex-col gap-4 min-h-0 min-w-0 overflow-y-auto scroll pr-1">
+        <section className="panel p-4 flex flex-col flex-1 min-h-[340px] overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="label">Session Sundial</span>
             <Clock3 size={14} className="text-faint" />
@@ -108,12 +108,12 @@ export default function Deck() {
             <div className="mt-3 text-[12px] text-amber">Watching {Object.keys(st.watch).join(", ")} bar by bar</div>
           )}
         </section>
-        <section className="panel p-4"><SectorHeatmap compact /></section>
+        <section className="panel p-4 shrink-0"><SectorHeatmap compact /></section>
       </aside>
 
       {/* centre: Orb inside the Orrery */}
-      <section className="flex flex-col min-h-[640px] min-w-0">
-        <div ref={ref} className="relative flex-1 min-h-[420px] grid place-items-center">
+      <section className="flex flex-col min-h-[640px] lg:min-h-0 min-w-0 gap-4">
+        <div ref={ref} className="relative flex-1 min-h-[380px] grid place-items-center">
           {size.w > 0 && (
             <Orrery size={orrery}>
               <button onClick={async () => {
@@ -133,7 +133,7 @@ export default function Deck() {
               · until {mandate.expires_ts.slice(11, 16)}</span>}
           </div>
         </div>
-        <div className="space-y-4 max-w-[760px] w-full mx-auto">
+        <div className="shrink-0 space-y-3 max-w-[820px] w-full mx-auto">
           <Pipeline />
           <CaptionRibbon />
           <CommandBar />
@@ -141,8 +141,8 @@ export default function Deck() {
       </section>
 
       {/* right: risk, position/ticket, balance, latest story */}
-      <aside className="flex flex-col gap-4 min-h-0">
-        <section className="panel p-4"><RiskReservoir /></section>
+      <aside className="flex flex-col gap-4 min-h-0 min-w-0 lg:overflow-y-auto scroll pr-1">
+        <section className="panel p-4 shrink-0"><RiskReservoir /></section>
         <TicketCard />
         {pos && (
           <section className="panel p-4">

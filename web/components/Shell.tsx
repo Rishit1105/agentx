@@ -150,7 +150,7 @@ function TopBar({ split, setSplit }: { split: boolean; setSplit: (v: boolean) =>
       <button onClick={() => window.dispatchEvent(new Event("meridian:palette"))} title="Command palette (⌘K)"
         className="hidden lg:flex h-8 shrink-0 items-center gap-2 rounded-full border border-line-2 pl-3 pr-1.5 text-[12px] text-muted hover:text-ink hover:border-cyan/50 transition-colors">
         <Search size={13} />Search or say…<kbd className="num text-[10.5px] rounded-md border border-line-2 px-1.5 py-0.5">⌘K</kbd></button>
-      <div className="hidden 2xl:flex items-center gap-4 text-[12px] whitespace-nowrap">
+      <div className="hidden min-[1800px]:flex items-center gap-4 text-[12px] whitespace-nowrap">
         <span className="text-muted">Paper equity <span className="num text-ink ml-1">{fmt.usd(acct?.equity)}</span></span>
         <span className="text-muted">Day <span className={clsx("num ml-1", (acct?.day_pnl ?? 0) >= 0 ? "pos" : "neg")}>{fmt.usd(acct?.day_pnl)}</span></span>
       </div>
