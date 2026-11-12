@@ -16,7 +16,9 @@ and point the frontend at it.
 The `Dockerfile` builds the core with the recorded NSE session. Speech-to-text and the LLM are off by default, to fit
 free tiers.
 
-**Render** (simplest): New → Web Service → connect the GitHub repo → Runtime **Docker** → instance type with ≥ 512 MB.
+**Render, one click:** New → **Blueprint** → pick the repo; `render.yaml` configures everything, and Render asks only for `UI_ORIGIN`.
+
+**Render, manual:** New → Web Service → connect the GitHub repo → Runtime **Docker** → instance type with ≥ 512 MB.
 Set environment variables:
 
 ```

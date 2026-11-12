@@ -1,0 +1,23 @@
+# Render Blueprint: one-click deploy of the Meridian core (FastAPI) from the repo's Dockerfile.
+# Render dashboard -> New -> Blueprint -> pick this repo. Then set UI_ORIGIN to your Vercel URL.
+services:
+  - type: web
+    name: meridian-core
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: UI_ORIGIN
+        sync: false            # set to https://<your-app>.vercel.app when prompted
+      - key: UI_ORIGIN_REGEX
+        value: https://.*\.vercel\.app
+      - key: REPLAY_DEFAULT
+        value: "true"
+      - key: STT_ENABLED
+        value: "false"
+      - key: LLM_ENABLED
+        value: "false"
+      - key: MERIDIAN_BROKER
+        value: mock
