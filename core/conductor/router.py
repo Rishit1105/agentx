@@ -236,6 +236,16 @@ def route(raw: str, *, universe: set[str], pending: bool) -> Intent:
         return I("sectors")
     if re.search(r"\b(move|raise|bump|put|set)\b.*\bstops?\b.*\b(break ?even|entry|cost)\b|\bbreak ?even stop\b", t):
         return I("stop_breakeven", symbol=find_ticker(text, universe))
+    mood = re.search(r"\b(?:i'?m|i am|feeling|feel|mood)\b.*?\b(calm|confident|anxious|nervous|fomo|revenge|revengeful|bored)\b", t)
+    if mood:
+        word = {"nervous": "anxious", "revengeful": "revenge"}.get(mood.group(1), mood.group(1))
+        conf = re.search(r"\bconfiden(?:ce|t)\s*(?:is\s*|of\s*|at\s*)?(\w+)(?:\s*(?:out of|/)\s*5)?", t)
+        c = number(conf.group(1)) if conf else None
+        return I("mood", mood=word, confidence=int(c) if c and 1 <= c <= 5 else None)
+    if re.search(r"\b(am i (on )?tilt(ed)?|tilt (check|status)|am i revenge trading)\b", t):
+        return I("tilt_status")
+    if re.search(r"\bcompliance\b|\bsebi (report|check|rules)\b|\balgo id\b", t):
+        return I("compliance")
     auto = automation_intent(t, universe)
     if auto:
         return I(auto) if isinstance(auto, str) else I(auto[0], **auto[1])

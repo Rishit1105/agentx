@@ -202,6 +202,28 @@ class Conductor:
             return "There's no ticket waiting. Ask me to plan a trade first."
         if n == "briefing":
             return await self.briefing()
+        if n == "mood":
+            out = d.set_mood(s.get("mood"), s.get("confidence"))
+            if not out.get("ok"):
+                return out.get("reason", "There's no ticket to check in on.")
+            if out.get("cancelled"):
+                return "Thanks for being honest. I've cancelled the ticket and paused new entries for 15 minutes."
+            extra = " FOMO is noted: the ticket is still within your rules, but you can say no." if out["mood"] == "fomo" else ""
+            conf = f", confidence {out['confidence']} of 5" if out.get("confidence") else ""
+            return f"Noted: {out['mood']}{conf}. It's saved with the trade so the scorecard can show P&L by mood.{extra}"
+        if n == "tilt_status":
+            t = d.tilt.snapshot()
+            if t["cooldown_s"]:
+                return f"Tilt cool-down active: {t['reason']}. {t['cooldown_s'] // 60} minutes left."
+            last = t["events"][-1] if t["events"] else None
+            return ("No tilt signals this session." if not last else
+                    f"Last check at {last['at'][11:16]}: " + "; ".join(x["text"] for x in last["signals"]) + ".")
+        if n == "compliance":
+            c = d.compliance.summary()
+            bad = [x["rule"] for x in c["checks"] if not x["ok"]]
+            return (f"{c['algo_orders']} algo orders and {c['manual_orders']} manual orders this session, every one tagged "
+                    f"with client {c['client_id']}. " + ("All compliance checks pass. " if not bad else
+                    "Failing: " + "; ".join(bad) + ". ") + "The report is in Guardrails as a PDF.")
         if n == "stop_breakeven":
             pos = [p for p in d.exchange.positions() if not s.get("symbol") or p["symbol"] == s["symbol"]]
             if not pos:
@@ -476,7 +498,9 @@ class Conductor:
             lim = d.cfg["max_loss_per_trade_usd"]
             tail = (" Autopilot will place it under the mandate." if d.mode == "autopilot" else
                     " Observe mode: I won't place it." if d.mode == "observe" else f" Say \"{t['say']}\" to place it.")
-            return (f"{t['strategy_label']}. Entry {t['entry']}, stop {t['stop']}, target {t['target']}. {tm_line} "
+            tilt = (t.get("tilt") or {}).get("signals") or []
+            tilt_line = ("Tilt check: " + "; ".join(x["text"] for x in tilt) + ". " if tilt else "")
+            return (tilt_line + f"{t['strategy_label']}. Entry {t['entry']}, stop {t['stop']}, target {t['target']}. {tm_line} "
                     f"{t['qty']} shares, risking {money(t['max_loss'])}, under your {money(lim)}. Risk gate passed."
                     f"{tail} A stop can fill worse in a fast market.")
         if st == "blocked":
