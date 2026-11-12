@@ -24,6 +24,8 @@ from .policy import Mandates, Policy
 from .services import backtester as bt
 from .services.automations import Automations
 from .services.marketmap import MarketMap
+from .services.tilt import TiltGuard
+from .services.compliance import MOODS, Compliance
 from .services.journalist import Journalist
 from .services.sentinel import Sentinel
 from .services.strategist import Strategist
@@ -80,7 +82,9 @@ class Desk:
         self.last_scan: dict | None = None
         self.bt_reports: dict[str, dict] = {}
         self.automations = Automations(self)
-        self.marketmap = MarketMap(market)          # sector heatmap + breadth      # "when X, do Y" rules on the virtual clock
+        self.marketmap = MarketMap(market)          # sector heatmap + breadth
+        self.tilt = TiltGuard(self)                 # revenge-trading / loss-chasing guard
+        self.compliance = Compliance(self)          # algo IDs, API log, daily logout, compliance report      # "when X, do Y" rules on the virtual clock
 
     # ================================================================== boot / replay
     def boot(self):
@@ -113,6 +117,7 @@ class Desk:
         self._flat_done = self._summary_done = None
         self.mode = self.cfg.get("meridian_mode_default", "advise")
         self.automations.new_session()
+        self.tilt.reset()
         self.audit.append("replay.start", date=date, start=start, speed=speed)
         self.bus.emit("replay.started", {**info, "start": start, "speed": speed}, actor="clock")
         return {**info, "clock": clock.snapshot(self.cfg)}
@@ -409,6 +414,11 @@ class Desk:
             return {"status": "denied", "reason": f"the desk is {self.sentinel.state.lower()}; re-arm it first"}
         if symbol not in market.symbols() and clock.mode == "replay":
             return {"status": "error", "reason": f"{symbol} is not in the recorded NIFTY 500 universe for this replay"}
+        why = self.tilt.gate()
+        if why:
+            story = self.journalist.create("block", symbol, {"symbol": symbol, "reasons": [why], "plain": f"new entry on {symbol}"})
+            self.bus.emit("risk.block", {"symbol": symbol, "reasons": [why], "story": story["id"], "tilt": True}, actor="sentinel")
+            return {"status": "blocked", "reasons": [why], "tilt": True, "story": story["id"]}
         if scan_hit is None and self.last_scan:
             scan_hit = next((h for h in self.last_scan.get("hits") or [] if h["symbol"] == symbol), None)
         async with self.lock:
@@ -502,6 +512,19 @@ class Desk:
                 self.audit.append("orders.edited", symbol=symbol, qty=int(qty), by=origin)
             self.step(symbol, 7, "done", f"{sz['orders'][0]['qty'] if not qty else qty} shares, bound by "
                       f"{sizing.get('bound_by')}")
+            # tilt guard: revenge re-entry, size escalation, loss chasing (before the Risk gate, never on exits)
+            od = read_trader("orders.json") or {}
+            planned = float(((od.get("orders") or [{}])[0].get("plan") or {}).get("max_loss") or sizing.get("max_loss") or 0)
+            tilt = self.tilt.assess(symbol, planned or None)
+            if tilt["level"] == "cooldown":
+                reasons = [f"tilt guard: {s['text']}" for s in tilt["signals"]] + \
+                          [f"new entries paused until {tilt['cooldown_until']} (a {15}-minute cool-down)"]
+                self.step(symbol, 8, "blocked", reasons[0])
+                story = self.journalist.create("block", symbol, {"symbol": symbol, "reasons": reasons,
+                                                                 "plain": f"BUY {qty or sizing.get('qty')} {symbol}"})
+                self.bus.emit("risk.block", {"symbol": symbol, "reasons": reasons, "story": story["id"], "tilt": True},
+                              actor="sentinel")
+                return {"status": "blocked", "reasons": reasons, "tilt": tilt, "story": story["id"]}
             # 8 gate
             self.step(symbol, 8, "running")
             risk = await self.risk_check()
@@ -532,7 +555,7 @@ class Desk:
                             "tm": tm, "strategy": chosen, "strategy_detail": strat, "news": news, "bt": bt_rep,
                             "entry": entry, "created": clock.label(), "created_wall": time.time(), "origin": origin,
                             "fingerprint": res.get("fingerprint"), "qty": int(ticket["tool_input"]["qty"]) if ticket else None,
-                            "bundle": bundle, "checks": n_checks}
+                            "bundle": bundle, "checks": n_checks, "tilt": tilt if tilt["level"] == "warn" else None}
             self.step(symbol, 9, "waiting", "say \"yes, buy …\" or tap" if self.mode != "autopilot" else "mandate")
             self.bus.emit("ticket.ready", self.ticket_view(), actor="broker")
             return {"status": "ready", "ticket": self.ticket_view()}
@@ -556,9 +579,37 @@ class Desk:
                 "sizing_limits": p["sizing"].get("limits", []), "bound_by": p["sizing"].get("bound_by"),
                 "flat_by": p["plan"].get("flat_by"), "created": p["created"], "mode": self.mode,
                 "say": f"yes, buy {p['qty']} {p['symbol']}",
+                "tilt": p.get("tilt"), "mood": p.get("mood"), "confidence": p.get("confidence"), "moods": list(MOODS),
+                "algo_id": self.compliance.algo_id(p["strategy"]) if self.mode == "autopilot" else "MANUAL",
                 "window_s": self.cfg.get("meridian_voice", {}).get("confirm_window_s", 30)}
 
     # ================================================================== execution (step 9-10)
+    def set_mood(self, mood: str | None, confidence: int | None = None) -> dict:
+        """The pre-entry check-in: how are you feeling, how confident are you (1-5)? A self-reported 'revenge' mood
+        refuses the ticket and starts the tilt cool-down: the trader said it, the desk takes them at their word."""
+        p = self.pending
+        if not p:
+            return {"ok": False, "reason": "there is no ticket waiting"}
+        mood = (mood or "").lower().strip() or None
+        if mood and mood not in MOODS:
+            return {"ok": False, "reason": f"mood must be one of {', '.join(MOODS)}"}
+        if confidence is not None and not 1 <= int(confidence) <= 5:
+            return {"ok": False, "reason": "confidence is 1 to 5"}
+        p["mood"], p["confidence"] = mood or p.get("mood"), int(confidence) if confidence is not None else p.get("confidence")
+        self.audit.append("ticket.mood", symbol=p["symbol"], mood=p["mood"], confidence=p["confidence"])
+        if p["mood"] == "revenge":
+            from datetime import timedelta
+            self.tilt.cooldown_until = clock.now() + timedelta(minutes=15)
+            self.tilt.cooldown_reason = "you said you were trading for revenge"
+            self.journalist.create("skip", p["symbol"], {"symbol": p["symbol"], "reason": "self-reported revenge mood",
+                                                         "why": "the trader checked in as 'revenge'; the ticket was cancelled "
+                                                                "and entries paused for 15 minutes"})
+            self.pending = None
+            self.bus.emit("ticket.cleared", {"why": "revenge mood"}, actor="sentinel")
+            return {"ok": True, "cancelled": True, "reason": "ticket cancelled and entries paused for 15 minutes"}
+        self.bus.emit("ticket.ready", self.ticket_view(), actor="broker")
+        return {"ok": True, "mood": p["mood"], "confidence": p["confidence"]}
+
     async def approve(self, reply: str, *, origin: str = "user", user_yes: bool = True) -> dict:
         p = self.pending
         if not p:
@@ -587,6 +638,9 @@ class Desk:
             self.step(p["symbol"], 10, "error", str(e))
             return {"ok": False, "reason": f"exchange rejected it: {e}"}
         fill = placed["fill"]
+        tag = self.compliance.tag_order(placed["order"]["id"], p["symbol"], origin=origin, strategy=p["strategy"],
+                                        mandate_id=mandate_id, mood=p.get("mood"), confidence=p.get("confidence"),
+                                        tilt=p.get("tilt"))
         await self.skill("trader-broker", ["result", "--index", str(p["index"]), "--status", "placed", "--broker-id",
                                            placed["order"]["id"], "--filled-qty", str(int(fill["qty"])),
                                            "--filled-price", f"{fill['price']:.2f}", *self.now_args()],
@@ -606,7 +660,8 @@ class Desk:
               + f" ({len(p['news']['items'])} headlines)", "tm_verdict": tmv,
               "bt_verdict": (p.get("bt") or {}).get("verdict"), "risk_passed": f"PASS ({p['checks']} checks)",
               "mode": self.mode, "mandate_id": mandate_id, "strategy_reason": p["strategy_detail"]["reason"],
-              "reply": reply, "fingerprint": p["fingerprint"], "order_id": placed["order"]["id"]}
+              "reply": reply, "fingerprint": p["fingerprint"], "order_id": placed["order"]["id"],
+              "algo_id": tag["algo_id"], "mood": p.get("mood"), "confidence": p.get("confidence")}
         story = self.journalist.create("trade", p["symbol"], ev, files=["trader/plan.json", "trader/orders.json",
                                        "trader/state/risk.json", "trader/state/broker.json", "trader/timemachine.json"])
         self.db.execute("UPDATE positions SET story_id=? WHERE symbol=?", (story["id"], p["symbol"]))
@@ -781,6 +836,9 @@ class Desk:
         self.exchange.on_tick()
         await self.sentinel.check()
         await self.automations.tick()
+        if self.compliance.daily_logout() and self.conductor:
+            await self.conductor.say("New trading day: autopilot authority from yesterday was revoked. Back to advise mode.",
+                                     kind="status")
         hhmm = now.strftime("%H:%M")
         bars = market.bars("NIFTY50") or (market.bars(market.symbols()[0]) if market.symbols() else [])
         new_bar = bool(bars) and bars[-1]["t"] != self._last_bar_t
