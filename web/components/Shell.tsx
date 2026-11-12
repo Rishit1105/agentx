@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Activity, BookText, CandlestickChart, FlaskConical, LayoutGrid, Pause, Play, Shield, Wifi, WifiOff, X,
-  FastForward, Cpu, Volume2, VolumeX, Briefcase, Columns2, Workflow, Search, Map, ClipboardCheck } from "lucide-react";
+  FastForward, Cpu, Volume2, VolumeX, Briefcase, Columns2, Workflow, Search, Map, ClipboardCheck, Beaker, Sigma } from "lucide-react";
 import clsx from "clsx";
 import { api, WS_URL } from "@/lib/api";
 import { fmt, useM } from "@/lib/store";
@@ -19,6 +19,8 @@ const NAV = [
   { href: "/markets", label: "Markets", short: "Markets", icon: Map, key: "2", screen: "markets" },
   { href: "/studio", label: "Trade Studio", short: "Studio", icon: CandlestickChart, key: "3", screen: "studio" },
   { href: "/backtest", label: "Backtest Lab", short: "Backtest", icon: FlaskConical, key: "4", screen: "backtest" },
+  { href: "/lab", label: "Strategy Lab", short: "Lab", icon: Beaker, key: "", screen: "lab" },
+  { href: "/options", label: "Options desk", short: "Options", icon: Sigma, key: "", screen: "options" },
   { href: "/portfolio", label: "My Portfolio", short: "Portfolio", icon: Briefcase, key: "5", screen: "portfolio" },
   { href: "/review", label: "Trade Review", short: "Review", icon: ClipboardCheck, key: "6", screen: "review" },
   { href: "/ledger", label: "Ledger", short: "Ledger", icon: BookText, key: "7", screen: "ledger" },
@@ -178,7 +180,7 @@ function Rail() {
       {NAV.map((n) => {
         const on = path === n.href;
         return (
-          <Link key={n.href} href={n.href} title={`${n.label}  (${n.key})`} aria-current={on ? "page" : undefined}
+          <Link key={n.href} href={n.href} title={n.key ? `${n.label}  (${n.key})` : n.label} aria-current={on ? "page" : undefined}
             className={clsx("relative w-[64px] py-2 flex flex-col items-center gap-1 rounded-xl transition-colors",
               on ? "text-ink bg-ink/[0.06]" : "text-muted hover:text-ink hover:bg-ink/[0.04]")}>
             {on && <motion.span layoutId="railmark" className="absolute -left-[6px] top-2 bottom-2 w-[3px] rounded-r bg-ink" />}
