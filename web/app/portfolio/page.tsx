@@ -1,4 +1,5 @@
 "use client";
+import HoldingsImportPanel from "@/components/HoldingsImportPanel";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
@@ -145,6 +146,7 @@ export default function PortfolioPage() {
           </table>
         )}
       </section>
+      <HoldingsImportPanel />
     </div>
   );
 }
