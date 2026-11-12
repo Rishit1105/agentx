@@ -56,3 +56,25 @@ def test_halt_words_still_halt_immediately():
     from core.conductor.router import route
     assert route("stop everything", universe=set(), pending=False).name == "halt"
     assert route("list my automations", universe=set(), pending=False).name == "automations_list"
+
+
+@pytest.mark.parametrize("said, english", [
+    ("Zomato mein trade plan karo", "plan a trade on zomato"),
+    ("haan, 482 ETERNAL khareedo", "yes, buy 482 ETERNAL"),
+    ("हाँ 482 ETERNAL खरीदो", "yes, buy 482 ETERNAL"),
+    ("sab band karo", "stop everything"),
+    ("सब बंद करो", "stop everything"),
+    ("breakouts scan karo", "scan for breakouts"),
+    ("agar main 300 infosys khareedu to?", "what if I buy 300 infosys"),
+    ("haan", "yes"),
+])
+def test_hinglish_commands_normalise_to_the_english_grammar(said, english):
+    from core.conductor.hindi import to_english
+    assert to_english(said) == (english, True)
+
+
+def test_english_passes_through_and_replies_localise():
+    from core.conductor.hindi import localize, to_english
+    assert to_english("plan a trade on zomato") == ("plan a trade on zomato", False)
+    assert localize("Ticket cancelled. Nothing was placed.") == "टिकट रद्द। कोई ऑर्डर नहीं लगा।"
+    assert localize("Something unexpected") == "Something unexpected"
