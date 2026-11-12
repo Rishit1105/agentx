@@ -67,7 +67,13 @@ async def token_guard(request: Request, call_next):
     if tok and request.url.path.startswith("/api/") and request.method != "GET":
         if request.headers.get("x-meridian-token") != tok:
             return JSONResponse({"error": "missing or bad session token"}, status_code=401)
-    return await call_next(request)
+    resp = await call_next(request)
+    if request.url.path.startswith("/api/") and request.method in ("POST", "PATCH", "DELETE"):
+        try:   # SEBI-style audit trail of every state-changing API call
+            desk.compliance.log_api(request.method, request.url.path, resp.status_code)
+        except Exception:
+            pass
+    return resp
 
 
 # ---------------------------------------------------------------- read models
@@ -348,6 +354,30 @@ async def what_if(body: dict = Body(...)):
 @app.get("/api/market/map")
 async def market_map():
     return desk.marketmap.snapshot()
+
+
+@app.post("/api/ticket/mood")
+async def ticket_mood(body: dict = Body(...)):
+    out = desk.set_mood(body.get("mood"), body.get("confidence"))
+    if not out.get("ok"):
+        raise HTTPException(400, out.get("reason"))
+    return out
+
+
+@app.get("/api/tilt")
+async def tilt_view():
+    return desk.tilt.snapshot()
+
+
+@app.get("/api/compliance")
+async def compliance_view():
+    return desk.compliance.summary()
+
+
+@app.get("/api/report/compliance.pdf")
+async def compliance_pdf():
+    return Response(desk.compliance.pdf(), media_type="application/pdf",
+                    headers={"Content-Disposition": "attachment; filename=meridian-compliance-report.pdf"})
 
 
 @app.get("/api/review")
