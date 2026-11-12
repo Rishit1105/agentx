@@ -20,6 +20,15 @@ const post = (p, body) => fetch(CORE + p, { method: "POST", headers: { "content-
   .then((r) => r.json()).catch(() => ({}));
 const say = (text) => post("/api/chat", { text });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+// wait until no agent is mid-run, so the next scene's command is never answered with "one moment"
+async function idle(maxMs = 45000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < maxMs) {
+    const agents = await fetch(CORE + "/api/agents").then((r) => r.json()).catch(() => []);
+    if (Array.isArray(agents) && !agents.some((a) => a.busy)) return;
+    await wait(500);
+  }
+}
 const ff = (args) => execFileSync(FFMPEG, ["-hide_banner", "-loglevel", "error", "-y", ...args], { stdio: "inherit" });
 
 // ---------------------------------------------------------------- overlays drawn inside the page while recording
@@ -76,7 +85,7 @@ const SCENES = [
   { id: "02-briefing", text: "On the Command Deck you just talk. Good morning gives the market briefing. Scan for breakouts runs the scanner across four hundred and ninety-seven NSE stocks, and the agents light up as they work.",
     setup: async () => { await post("/api/replay/start", { date: "2026-11-11", start: "09:40", speed: 20, paused: true }); },
     run: async (p, d) => { await p.goto(WEB + "/deck", { waitUntil: "networkidle" }); await overlay(p, "<b>02</b> COMMAND DECK", "“Hey Meridian, good morning”");
-      await wait(1200); say("Hey Meridian, good morning"); await wait(d * 0.35);
+      await wait(1200); await say("Hey Meridian, good morning"); await wait(d * 0.2);
       await caption(p, "“Scan for breakouts”: 130 of 497 NSE stocks broke out"); await say("Scan for breakouts"); } },
   { id: "03-ticket", text: "Plan a trade on Zomato runs the whole pipeline: strategy, entry, stop and target, sixty real sessions in the Time Machine, sizing to a two thousand five hundred rupee maximum loss, and the risk gate. Before you say yes, Meridian asks how you feel. Then only an exact yes places the paper order.",
     run: async (p, d) => { await p.goto(WEB + "/deck", { waitUntil: "networkidle" }); await overlay(p, "<b>03</b> PLAN · CHECK-IN · YES", "“Plan a trade on Zomato”");
@@ -135,7 +144,9 @@ async function main() {
   for (const sc of SCENES) {
     const { aiff, dur } = narrate(sc, tmp);
     const total = dur + 1.4;                                  // breathing room before and after the voice
+    await idle();
     if (sc.setup) await sc.setup();
+    await idle();
     const vdir = path.join(tmp, sc.id);
     const ctx = await browser.newContext({ viewport: { width: W, height: H }, colorScheme: "light",
       recordVideo: { dir: vdir, size: { width: W, height: H } } });
