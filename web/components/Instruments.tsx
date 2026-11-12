@@ -27,6 +27,13 @@ export function Sundial({ stories, compact = false }: { stories: Story[]; compac
   const pins = stories.filter((s) => ["trade", "skip", "block", "halt"].includes(s.kind)).map((s) => ({
     m: mm(s.vclock.slice(11, 16)), kind: s.kind, sym: s.symbol, id: s.id, headline: s.headline }));
   const pinColor: Record<string, string> = { trade: "#0e9f6e", skip: "#646b76", block: "#b7790b", halt: "#e5484d" };
+  // offset labels of events that sit within ~22px of each other (the Sundial is roughly 420-700px tall)
+  const stacked: (typeof pins[number] & { shift: number })[] = [];
+  pins.slice().sort((a, b) => a.m - b.m).forEach((p, i, arr) => {
+    const prev = stacked[i - 1];
+    const gapPx = prev ? ((p.m - arr[i - 1].m) / (close - open)) * 480 : 99;
+    stacked.push({ ...p, shift: prev && gapPx < 24 ? prev.shift + (24 - gapPx) : 0 });
+  });
   void H;
   return (
     <div className="relative h-full min-h-[420px] flex">
@@ -48,18 +55,20 @@ export function Sundial({ stories, compact = false }: { stories: Story[]; compac
           <div key={z.label + "l"} className="absolute left-8 text-[10.5px] tracking-wide" style={{ top: `calc(${(y(z.from) + y(z.to)) / 2}% - 7px)`, color: z.c + "cc" }}>
             {z.label}</div>
         ))}
-        {pins.map((p) => (
-          <div key={p.id} className="absolute left-[7px] flex items-center gap-2 group" style={{ top: `calc(${y(p.m)}% - 9px)` }}>
-            <span className="h-[18px] w-[18px] rounded-full grid place-items-center border-2" style={{ borderColor: pinColor[p.kind], background: "#ffffff",
-              boxShadow: `0 0 12px ${pinColor[p.kind]}88` }}><span className="h-1.5 w-1.5 rounded-full" style={{ background: pinColor[p.kind] }} /></span>
-            <span className="text-[11px] num px-1.5 py-0.5 rounded bg-ink/30 border border-line" style={{ color: pinColor[p.kind] }}>
+        {stacked.map((p) => (
+          <div key={p.id} className="absolute left-[7px] right-1 flex items-center gap-2 group" style={{ top: `calc(${y(p.m)}% - 9px)` }}>
+            <span className="h-[18px] w-[18px] shrink-0 rounded-full grid place-items-center border-2 bg-white" style={{ borderColor: pinColor[p.kind] }}>
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: pinColor[p.kind] }} /></span>
+            {/* labels stack downwards when events are close together, so they never overlap */}
+            <span className="text-[11px] num px-1.5 py-0.5 rounded bg-white border border-line whitespace-nowrap truncate shadow-sm"
+              style={{ color: pinColor[p.kind], transform: `translateY(${p.shift}px)` }} title={p.headline}>
               {p.kind} {p.sym ?? ""}</span>
           </div>
         ))}
         {clock && now >= 555 && now <= 930 && (
-          <motion.div className="absolute left-0 right-0 flex items-center gap-2" animate={{ top: `calc(${y(now)}% - 1px)` }} transition={{ duration: 0.4 }}>
-            <span className="h-[2px] w-9 bg-cyan shadow-sm" />
-            <span className="num text-[11px] text-cyan bg-cyan/10 border border-cyan/30 rounded px-1.5">NOW {clock.hhmm}</span>
+          <motion.div className="absolute -left-14 right-0 flex items-center pointer-events-none" animate={{ top: `calc(${y(now)}% - 9px)` }} transition={{ duration: 0.4 }}>
+            <span className="num text-[10.5px] text-white bg-cyan rounded px-1 py-0.5 w-12 text-center">{clock.hhmm}</span>
+            <span className="h-[2px] flex-1 bg-cyan/50" />
           </motion.div>
         )}
       </div>
