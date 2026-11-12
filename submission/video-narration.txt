@@ -1,0 +1,23 @@
+[00-title] This is Meridian: a voice-first paper-trading desk for India's NSE. Speak the market, and trust every trade.
+
+[01-landing] SEBI found that seven in ten intraday traders lost money. They know the rules; nothing makes them follow them. Meridian moves those rules out of the trader's head and into code.
+
+[02-briefing] On the Command Deck you just talk. Good morning gives the market briefing. Scan for breakouts runs the scanner across four hundred and ninety-seven NSE stocks, and the agents light up as they work.
+
+[03-ticket] Plan a trade on Zomato runs the whole pipeline: strategy, entry, stop and target, sixty real sessions in the Time Machine, sizing to a two thousand five hundred rupee maximum loss, and the risk gate. Before you say yes, Meridian asks how you feel. Then only an exact yes places the paper order.
+
+[04-tilt] When that trade stops out and you try to win it straight back, the tilt guard steps in. The revenge re-entry is blocked and new entries pause for fifteen minutes. Exits are never blocked.
+
+[05-markets] Markets shows the NIFTY five hundred by sector, sized by traded value. In Trade Studio, the what-if simulator shows the limit that binds, the charges, and a gap through the stop, before any ticket exists.
+
+[06-lab] In the Strategy Lab you describe a rule in plain English. Meridian backtests it on real bars with Indian charges against buy and hold. Only a rule that passes the edge gate can be approved. Most don't, and Meridian says so.
+
+[07-options] The paper options desk models defined-risk strategies, draws the payoff, and checks the worst case against the same per-trade limit.
+
+[08-auto] Automations put the desk on rails: a breakout radar, a breakeven guard, a soft loss guard. And you can speak Hinglish. Zomato mein trade plan karo works just like English.
+
+[09-review] Trade Review grades your discipline and shows every trade's post-mortem. Guardrails holds the limits, the hash-chained audit log, and a SEBI-style compliance report with an algo ID on every algo order.
+
+[10-halt] And one phrase always works, with or without the language model. Stop everything. Orders cancelled, positions flat, entries locked.
+
+[11-outro] Meridian. Speak the market. Trust every trade. Paper trading only, built to make discipline the default.
