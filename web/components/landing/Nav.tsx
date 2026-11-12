@@ -1,22 +1,22 @@
 "use client";
 import { useState } from "react";
-import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform } from "motion/react";
+import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring, useTransform } from "motion/react";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { useScrollRoot } from "./context";
 import { EASE, LaunchLink, Wordmark } from "./ui";
 
 const LINKS = [
+  { href: "#demo", label: "Demo" },
   { href: "#problem", label: "Why" },
-  { href: "#agents", label: "Agents" },
-  { href: "#safety", label: "Safety" },
-  { href: "#automations", label: "Automations" },
-  { href: "#backtest", label: "Backtest" },
   { href: "#how", label: "How it works" },
+  { href: "#guardrails", label: "Guardrails" },
+  { href: "#backtest", label: "Backtest" },
 ];
 
 export default function Nav() {
   const container = useScrollRoot();
-  const { scrollY } = useScroll({ container });
+  const { scrollY, scrollYProgress } = useScroll({ container });
+  const progress = useSpring(scrollYProgress, { stiffness: 200, damping: 34, restDelta: 0.0005 });
   const glass = useTransform(scrollY, [0, 80], [0, 1]);
   const [open, setOpen] = useState(false);
   useMotionValueEvent(scrollY, "change", () => {
@@ -26,6 +26,9 @@ export default function Nav() {
   return (
     <nav aria-label="Primary" className="lp-nav fixed inset-x-0 top-0 z-50">
       <motion.div aria-hidden style={{ opacity: glass }} className="lp-nav-bar absolute inset-0" />
+      {/* reading progress: a hairline of ink that fills as the page scrolls */}
+      <motion.div aria-hidden className="absolute inset-x-0 bottom-0 z-10 h-[2px] origin-left"
+        style={{ scaleX: progress, background: "linear-gradient(90deg, #0e9f6e, #0a7ea4 60%, #14181f)" }} />
       <div className="lp-wrap relative flex h-16 items-center gap-4">
         <a href="#top" className="shrink-0 text-(--lp-ink)" aria-label="Meridian, back to top">
           <Wordmark />

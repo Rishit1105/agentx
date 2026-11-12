@@ -14,7 +14,8 @@ const CAPTIONS = [
   { h: "Filled on paper. Explained in English.", p: "A simulated fill with Indian charges, and a Story whose every number is checked against evidence." },
 ];
 
-/** A scroll-scrubbed product film: the Command Deck zooms in, then plays one beat per scroll step. */
+/** A scroll-scrubbed product film: the Command Deck tilts in, then plays one beat per short scroll step
+ *  (six scenes across 0.6 of a screen of travel, so the pin lasts 1.6 screens in all). */
 export default function DemoReel() {
   const container = useScrollRoot();
   const ref = useRef<HTMLElement>(null);
@@ -39,7 +40,7 @@ export default function DemoReel() {
   });
 
   return (
-    <section id="demo" ref={ref} aria-label="Watch Meridian work" className="lp-anchor lp-soft relative h-[520vh] border-t border-(--lp-line) md:h-[560vh]">
+    <section id="demo" ref={ref} aria-label="Watch Meridian work" className="lp-anchor lp-soft relative h-[160vh] border-t border-(--lp-line)">
       <div className="sticky top-0 flex h-dvh flex-col overflow-hidden pb-4 pt-[76px] sm:pb-6">
         <div className="lp-wrap flex shrink-0 flex-col gap-3 md:flex-row md:items-end md:justify-between md:gap-8">
           <div className="min-w-0 md:max-w-[640px]">

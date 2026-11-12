@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import { motion, useMotionValue, useMotionValueEvent, useScroll, useSpring, useTransform } from "motion/react";
 import { ArrowRight, Lock, Mic } from "lucide-react";
 import { useLaunch, useScrollRoot } from "./context";
-import { LaunchLink, OrbMark } from "./ui";
+import { LaunchLink, OrbMark, splitWords, stagger } from "./ui";
 import MiniOrb from "./demo/MiniOrb";
 import OrreryMock from "./demo/OrreryMock";
 
@@ -107,8 +107,9 @@ export default function Finale() {
   });
   const y = useTransform(p, [0.12, 0.92], ["14vh", "0vh"]);
   const radius = useTransform(p, [0.6, 0.92], [18, 0]);
-  const copyOpacity = useTransform(p, [0.08, 0.32], [1, 0]);
-  const copyY = useTransform(p, [0.08, 0.32], [0, -40]);
+  const copyOpacity = useTransform(p, [0.06, 0.3], [1, 0]);
+  const copyY = useTransform(p, [0.06, 0.3], [0, -40]);
+  const copyScale = useTransform(p, [0.06, 0.3], [1, 1.12]);
   const hintOpacity = useTransform(p, [0.78, 0.92], [0, 1]);
 
   useMotionValueEvent(scrollYProgress, "change", (v) => {
@@ -120,11 +121,19 @@ export default function Finale() {
   });
 
   return (
-    <section ref={ref} aria-label="Open the Command Deck" className="relative h-[300vh] border-t border-(--lp-line)">
+    <section ref={ref} aria-label="Open the Command Deck" className="relative h-[130vh] border-t border-(--lp-line)">
       <div className="sticky top-0 h-dvh overflow-hidden">
-        <motion.div style={{ opacity: copyOpacity, y: copyY }} className="lp-wrap relative z-10 pt-24 text-center sm:pt-28">
+        <motion.div style={{ opacity: copyOpacity, y: copyY, scale: copyScale }} className="lp-wrap relative z-10 pt-24 text-center sm:pt-28">
           <p className="lp-eyebrow">The desk is listening</p>
-          <h2 className="lp-h2 mx-auto mt-4 max-w-3xl text-balance">Say it. Check it. Then trust it.</h2>
+          <motion.h2
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.6 }}
+            variants={stagger(0.06)}
+            className="lp-h2 mx-auto mt-4 max-w-3xl text-balance"
+          >
+            {splitWords("Say it. Check it. Then trust it.")}
+          </motion.h2>
           <div className="mt-6 flex justify-center">
             <LaunchLink className="lp-btn lp-btn-primary h-12 px-6 text-[15px]">
               Launch the desk <ArrowRight size={16} aria-hidden />

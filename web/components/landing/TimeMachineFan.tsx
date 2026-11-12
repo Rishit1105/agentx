@@ -67,7 +67,7 @@ export default function TimeMachineFan() {
   const tally = useTransform(draw, [0.8, 1], [0, 1]);
 
   return (
-    <figure ref={ref} className="lp-card min-w-0 p-5 sm:p-6">
+    <figure ref={ref} className="lp-card h-full min-w-0 p-5 sm:p-6">
       <figcaption className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <span className="text-[15px] font-semibold">Time Machine · before you take it</span>
         <span className="lp-mono text-[11px] text-(--lp-muted)">60 illustrative paths</span>

@@ -1,28 +1,24 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { LaunchCtx, ScrollCtx, useReducedMotion } from "./context";
 import { OrbMark } from "./ui";
 import Nav from "./Nav";
 import Hero from "./Hero";
 import DemoReel from "./DemoReel";
 import ProductFilm from "./ProductFilm";
-import Tape from "./Tape";
-import Stats from "./Stats";
+import Numbers from "./Numbers";
 import Problem from "./Problem";
-import AgentMesh from "./AgentMesh";
-import Safety from "./Safety";
-import Automations from "./Automations";
+import HowItWorks from "./HowItWorks";
+import Guardrails from "./Guardrails";
 import Backtest from "./Backtest";
-import WatchStrip from "./WatchStrip";
-import Lifecycle from "./Lifecycle";
-import Ledger from "./Ledger";
 import FinePrint from "./FinePrint";
 import Finale from "./Finale";
 
-/** Storyboard: hero → zoom into the product film → the problem and the details → a final zoom straight into /deck.
- *  One light theme throughout: bands alternate only between paper, white and soft, divided by hairlines. */
+/** Storyboard, about eight screens: the hero zooms into the orb → the demo reel → the real recording → the money
+ *  → the problem → how it works → guardrails → backtest → a final zoom straight into /deck. Each section zooms in
+ *  with depth as it arrives. One light theme: bands alternate between paper, white and soft, divided by hairlines. */
 export default function Landing() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -42,6 +38,7 @@ export default function Landing() {
   }, [router, reduced]);
 
   return (
+    <MotionConfig reducedMotion="user">
     <ScrollCtx.Provider value={scrollRef}>
       <LaunchCtx.Provider value={launch}>
         <Nav />
@@ -55,16 +52,11 @@ export default function Landing() {
             <Hero />
             <DemoReel />
             <ProductFilm />
-            <Tape />
-            <Stats />
+            <Numbers />
             <Problem />
-            <AgentMesh />
-            <Safety />
-            <Automations />
+            <HowItWorks />
+            <Guardrails />
             <Backtest />
-            <WatchStrip />
-            <Lifecycle />
-            <Ledger />
           </main>
           <FinePrint />
           <Finale />
@@ -95,5 +87,6 @@ export default function Landing() {
         </AnimatePresence>
       </LaunchCtx.Provider>
     </ScrollCtx.Provider>
+    </MotionConfig>
   );
 }

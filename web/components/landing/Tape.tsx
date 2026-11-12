@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useInView } from "motion/react";
 import { useReducedMotion } from "./context";
+import Odometer from "./money/Odometer";
 
 /** Illustrative quotes for the simulated tape (paper only, not live data). */
 const QUOTES = [
@@ -28,30 +29,6 @@ const EVENTS = [
 
 const fmt = (v: number) => v.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-/** A number whose digits roll like an odometer when the value changes. */
-function RollingNumber({ value }: { value: string }) {
-  const chars = value.split("");
-  return (
-    <span className="lp-mono inline-flex h-[1.25em] leading-[1.25em]" aria-hidden>
-      {chars.map((ch, i) => {
-        // key from the right so the units column stays put when the length changes
-        const key = chars.length - i;
-        if (!/\d/.test(ch)) return <span key={key}>{ch}</span>;
-        const d = Number(ch);
-        return (
-          <span key={key} className="relative inline-block h-[1.25em] w-[1ch] overflow-hidden">
-            <span className="lp-digit-col absolute left-0 top-0 flex flex-col" style={{ transform: `translateY(${-d * 1.25}em)` }}>
-              {"0123456789".split("").map((n) => (
-                <span key={n} className="block h-[1.25em]">{n}</span>
-              ))}
-            </span>
-          </span>
-        );
-      })}
-    </span>
-  );
-}
-
 type Quote = { sym: string; px: number; open: number };
 
 function Item({ q }: { q: Quote }) {
@@ -60,7 +37,7 @@ function Item({ q }: { q: Quote }) {
   return (
     <span className="inline-flex items-center gap-2.5 whitespace-nowrap px-5 text-[13px]">
       <span className="font-semibold tracking-[-0.01em] text-(--lp-ink)">{q.sym}</span>
-      <span className="text-(--lp-ink-2)"><RollingNumber value={fmt(q.px)} /></span>
+      <span className="text-(--lp-ink-2)"><Odometer value={fmt(q.px)} /></span>
       <span className="lp-mono text-[12px]" style={{ color: up ? "var(--lp-mint)" : "var(--lp-coral)" }}>
         {up ? "▲" : "▼"} {Math.abs(chg).toFixed(2)}%
       </span>
@@ -111,7 +88,7 @@ export default function Tape() {
   });
 
   return (
-    <section ref={ref} aria-label="Simulated market tape" className="lp-white relative border-t border-(--lp-line)">
+    <div ref={ref} role="group" aria-label="Simulated market tape" className="lp-white relative border-t border-(--lp-line)">
       <p className="sr-only">
         A simulated NSE tape for illustration, paper only: {QUOTES.map((q) => q.sym).join(", ")}, interleaved with agent events such as{" "}
         {EVENTS.map((e) => `${e.who}: ${e.what}`).join("; ")}.
@@ -133,6 +110,6 @@ export default function Tape() {
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
