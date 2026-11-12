@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import io
 import json
+import os
 import time
 from contextlib import asynccontextmanager
 
@@ -57,7 +58,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Meridian core", version="1.0", lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=[ENV["ui_origin"], "http://127.0.0.1:3000"], allow_credentials=True,
+# UI_ORIGIN may list several origins (comma-separated); UI_ORIGIN_REGEX allows e.g. Vercel preview URLs
+app.add_middleware(CORSMiddleware, allow_origins=[o.strip() for o in ENV["ui_origin"].split(",") if o.strip()] + ["http://127.0.0.1:3000"],
+                   allow_origin_regex=os.getenv("UI_ORIGIN_REGEX") or None, allow_credentials=True,
                    allow_methods=["*"], allow_headers=["*"])
 
 
