@@ -31,6 +31,10 @@ CREATE TABLE IF NOT EXISTS kill_events(id INTEGER PRIMARY KEY AUTOINCREMENT, ts 
 CREATE TABLE IF NOT EXISTS audit(id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT, event TEXT, prev_hash TEXT,
     hash TEXT);
 CREATE TABLE IF NOT EXISTS turns(id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT, role TEXT, text TEXT);
+CREATE TABLE IF NOT EXISTS order_tags(order_id TEXT PRIMARY KEY, ts TEXT, symbol TEXT, origin TEXT, algo_id TEXT,
+    client_id TEXT, mandate_id TEXT, mood TEXT, confidence INTEGER, tilt TEXT);
+CREATE TABLE IF NOT EXISTS compliance_log(id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT, vclock TEXT, kind TEXT,
+    method TEXT, path TEXT, status INTEGER, detail TEXT);
 CREATE INDEX IF NOT EXISTS ix_events_type ON events(type);
 CREATE INDEX IF NOT EXISTS ix_stories_symbol ON stories(symbol);
 """
@@ -62,7 +66,7 @@ class DB:
         """Clear per-session trading state (used when a new Replay session starts)."""
         with self.lock:
             for t in ("orders", "fills", "positions", "account", "mandates", "events", "tool_calls",
-                      "stories", "kill_events", "turns"):
+                      "stories", "kill_events", "turns", "order_tags"):
                 self.conn.execute(f"DELETE FROM {t}")
 
     # account key/value
