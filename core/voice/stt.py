@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import io
 import threading
+import os
 import time
 import wave
 
@@ -72,8 +73,15 @@ class STT:
             return {"text": "", "confidence": 0.0, "error": "too short"}
         t0 = time.perf_counter()
         with self.lock:
-            segs, info = self.model.transcribe(audio, language="en", beam_size=1, vad_filter=True,
-                                               initial_prompt=PROMPT, condition_on_previous_text=False)
+            # STT_LANGUAGE: en (default), hi, or auto. Hindi needs a multilingual model (STT_MODEL=small or base, not *.en)
+            lang = os.getenv("STT_LANGUAGE", "en").lower()
+            if lang not in ("en", "hi"):
+                lang = None
+            if str(getattr(self, "model_name", os.getenv("STT_MODEL", "base.en"))).endswith(".en"):
+                lang = "en"
+            prompt = PROMPT if lang == "en" else PROMPT + " Hinglish: trade plan karo, haan khareedo, sab band karo, scan karo."
+            segs, info = self.model.transcribe(audio, language=lang, beam_size=1, vad_filter=True,
+                                               initial_prompt=prompt, condition_on_previous_text=False)
             segs = list(segs)
         text = " ".join(s.text.strip() for s in segs).strip()
         if segs:
