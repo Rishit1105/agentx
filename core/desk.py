@@ -26,6 +26,8 @@ from .services.automations import Automations
 from .services.marketmap import MarketMap
 from .services.tilt import TiltGuard
 from .services.compliance import MOODS, Compliance
+from .services.strategy_builder import Builder
+from .services.holdings_import import HoldingsImport
 from .services.journalist import Journalist
 from .services.sentinel import Sentinel
 from .services.strategist import Strategist
@@ -84,7 +86,9 @@ class Desk:
         self.automations = Automations(self)
         self.marketmap = MarketMap(market)          # sector heatmap + breadth
         self.tilt = TiltGuard(self)                 # revenge-trading / loss-chasing guard
-        self.compliance = Compliance(self)          # algo IDs, API log, daily logout, compliance report      # "when X, do Y" rules on the virtual clock
+        self.compliance = Compliance(self)          # algo IDs, API log, daily logout, compliance report
+        self.builder = Builder(self)                # natural-language strategy builder
+        self.holdings = HoldingsImport(self)        # read-only import of real broker holdings      # "when X, do Y" rules on the virtual clock
 
     # ================================================================== boot / replay
     def boot(self):

@@ -246,6 +246,14 @@ def route(raw: str, *, universe: set[str], pending: bool) -> Intent:
         return I("tilt_status")
     if re.search(r"\bcompliance\b|\bsebi (report|check|rules)\b|\balgo id\b", t):
         return I("compliance")
+    m = re.match(r"^(?:build|create|test|make|backtest)\s+(?:a\s+|this\s+|my\s+)?(?:strategy|rule)\b[:,]?\s*(.+)$", t) or \
+        re.match(r"^(buy when .+)$", t)
+    if m:
+        return I("strategy_build", text=m.group(1), symbol=find_ticker(text, universe))
+    m = re.search(r"\b(long call|long put|bull call spread|bear put spread|long straddle|straddle|iron condor)\b", t)
+    if m:
+        strat = {"straddle": "long_straddle"}.get(m.group(1), m.group(1).replace(" ", "_"))
+        return I("options", strategy=strat, symbol=find_ticker(text, universe) or "NIFTY50")
     auto = automation_intent(t, universe)
     if auto:
         return I(auto) if isinstance(auto, str) else I(auto[0], **auto[1])

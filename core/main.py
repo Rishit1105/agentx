@@ -17,7 +17,7 @@ from .conductor.conductor import Conductor
 from .desk import AGENTS, Desk
 from .market import market
 from .exchange.engine import ExchangeError
-from .services import review, scorecard, whatif
+from .services import holdings_import, options, review, scorecard, strategy_builder, whatif
 from .services.automations import TEMPLATES, AutomationError
 from .voice.stt import stt
 from .voice.tts_client import TTS_DIR, tts
@@ -354,6 +354,59 @@ async def what_if(body: dict = Body(...)):
 @app.get("/api/market/map")
 async def market_map():
     return desk.marketmap.snapshot()
+
+
+@app.get("/api/holdings/imported")
+async def holdings_imported():
+    return desk.holdings.view()
+
+
+@app.post("/api/holdings/import")
+async def holdings_import(body: dict = Body(...)):
+    try:
+        return desk.holdings.load(body.get("text", ""), body.get("source", "csv"))
+    except (holdings_import.ImportError_, ValueError) as e:
+        raise HTTPException(400, str(e))
+
+
+@app.delete("/api/holdings/imported")
+async def holdings_clear():
+    desk.holdings.clear()
+    return {"ok": True}
+
+
+@app.get("/api/options")
+async def options_view(symbol: str = "NIFTY50", strategy: str = "bull_call_spread", days: int = 7, lots: int = 1,
+                       width: int = 2, lot_size: int | None = None):
+    try:
+        return options.analyse(desk, symbol, strategy, days=days, lots=lots, width=width, lot_size=lot_size)
+    except options.OptionsError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.get("/api/strategies")
+async def strategies_list():
+    return {"strategies": desk.builder.list(),
+            "examples": ["buy when price closes above the 20-day high with volume over 1.5x, stop 1.5 ATR, target 2R",
+                         "buy the opening range breakout of the first 30 minutes, stop at the range midpoint, target 1.5R",
+                         "buy a bounce after a 2% gap down, stop at the session low, target 1R after 10:00"]}
+
+
+@app.post("/api/strategies/test")
+async def strategies_test(body: dict = Body(...)):
+    try:
+        return await asyncio.to_thread(desk.builder.test, body.get("text", ""), body.get("symbol") or "RELIANCE",
+                                       body.get("name"))
+    except strategy_builder.BuilderError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.post("/api/strategies/{sid}/approve")
+async def strategies_approve(sid: str):
+    try:
+        return desk.builder.approve(sid)
+    except strategy_builder.BuilderError as e:
+        raise HTTPException(400, str(e))
 
 
 @app.post("/api/ticket/mood")

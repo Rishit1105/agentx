@@ -215,6 +215,29 @@ class Conductor:
             return "There's no ticket waiting. Ask me to plan a trade first."
         if n == "briefing":
             return await self.briefing()
+        if n == "options":
+            from ..services import options as opt
+            try:
+                r = opt.analyse(d, s.get("symbol") or "NIFTY50", s["strategy"])
+            except Exception as e:
+                return f"I can't model that: {e}."
+            mp = "unlimited" if r["max_profit"] is None else f"₹{r['max_profit']:,.0f}"
+            be = " and ".join(f"{b:,.0f}" for b in r["breakevens"]) or "none in range"
+            return (f"{r['label']} on {r['symbol']}, {r['days']} days, 1 lot of {r['lot_size']}: {r['type']} "
+                    f"₹{abs(r['net_premium']):,.0f}, max profit {mp}, max loss ₹{r['max_loss']:,.0f}, breakeven {be}, "
+                    f"about {r['pop']:.0f}% chance of profit. Risk gate: {r['verdict']}. {r['why']} "
+                    "Premiums are modelled, not a live chain. Open the Options desk for the payoff chart.")
+        if n == "strategy_build":
+            try:
+                rep = await asyncio.to_thread(d.builder.test, s["text"], s.get("symbol") or "RELIANCE")
+            except Exception as e:
+                return f"I couldn't build that rule: {e}."
+            d.bus.emit("strategy.tested", {"id": rep["id"], "verdict": rep["verdict"]}, actor="backtester")
+            st = rep["stats"]
+            return (f"I read it as: {rep['rule']} On {rep['symbol']} over {rep['window']['sessions']} sessions: "
+                    f"{st['trades']} trades, win rate {st['win_rate']}%, {st['expectancy_r']}R per trade after costs. "
+                    f"Verdict: {rep['verdict']}." + (" You can approve it in the Strategy Lab." if rep["gate"]["passed"] else
+                                                      " It stays a draft: it can't be traded."))
         if n == "mood":
             out = d.set_mood(s.get("mood"), s.get("confidence"))
             if not out.get("ok"):
