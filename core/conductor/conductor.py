@@ -22,6 +22,7 @@ from ..voice.stt import stt
 from ..voice.tts_client import tts
 from .llm import llm
 from .router import Intent, ensure_aliases, route
+from .hindi import DEVANAGARI, localize, to_english
 
 SYSTEM = (Path(__file__).parent / "prompts" / "system.md").read_text(encoding="utf-8")
 
@@ -78,6 +79,8 @@ def core_symbols() -> set[str]:
 
 
 class Conductor:
+    lang = "en"   # language of the last request: replies follow it
+
     def __init__(self, desk):
         self.desk = desk
         self.state = "IDLE"
@@ -104,8 +107,13 @@ class Conductor:
     # ------------------------------------------------------------------ speech out
     async def say(self, text: str, kind: str = "reply", force: bool = False) -> dict:
         sid = "u_" + uuid.uuid4().hex[:8]
+        lang = getattr(self, "lang", "en")
+        if lang == "hi":
+            text = localize(text)
+            lang = "hi" if DEVANAGARI.search(text) else "en"
         speed = 0.95 if kind == "risk" else 1.05 if kind == "status" else 1.0
-        speech = speakable(text, set(self.desk.market.symbols()))
+        # Hindi replies go to a hi-IN voice as written (it reads digits in Hindi); English gets the Speakable rewrite
+        speech = text if lang == "hi" else speakable(text, set(self.desk.market.symbols()))
         parts = sentences(speech) or [speech]
         await tts.health()
         engine = tts.engine()   # one engine for every reply: never mix cached OmniVoice clips with browser speech
@@ -113,7 +121,7 @@ class Conductor:
         self.history.append({"role": "assistant", "content": text})
         self.history = self.history[-20:]
         self.desk.bus.emit("voice.say", {"id": sid, "text": text, "speech": speech, "kind": kind, "engine": engine,
-                                         "speed": speed, "n": len(parts)}, actor="conductor")
+                                         "speed": speed, "n": len(parts), "lang": lang}, actor="conductor")
         if engine == "omnivoice":
             asyncio.ensure_future(self._stream(sid, parts, speed))
         elif tts.should_prerender():
@@ -136,6 +144,9 @@ class Conductor:
         raw = (raw or "").strip()
         if not raw:
             return {"reply": ""}
+        # Hindi / Hinglish in -> the same English grammar (safety words included); replies go back in Hindi
+        raw, hindi_in = to_english(raw)
+        self.lang = "hi" if hindi_in else "en"
         universe = set(self.desk.market.symbols()) | set(NAMES)
         ensure_aliases(self.desk.market.names, core_symbols())
         intent = route(raw, universe=universe, pending=self.desk.pending is not None)
@@ -148,7 +159,7 @@ class Conductor:
             res = await self.desk.sentinel.halt("voice" if source == "voice" else "chat", actor="user",
                                                 detail={"utterance": raw, "confidence": confidence})
             self.set_state("HALTED")
-            return {"reply": "Stopped.", "intent": "halt", "result": res}
+            return {"reply": localize("Stopped.") if self.lang == "hi" else "Stopped.", "intent": "halt", "result": res}
         min_conf = self.desk.cfg.get("meridian_voice", {}).get("min_confidence_action", 0.85)
         actionish = intent.name in ("confirm_yes", "flatten", "flatten_all", "set_limits", "autopilot", "plan")
         if source == "voice" and confidence is not None and confidence < min_conf and actionish:
@@ -170,7 +181,9 @@ class Conductor:
                 await self.say(reply, kind="risk" if intent.name in ("confirm_yes", "set_limits") else "reply")
             self.set_state("AWAITING_CONFIRM" if self.desk.pending else
                            "HALTED" if self.desk.sentinel.state == "LOCKED" else "IDLE")
-            return {"reply": reply, "intent": intent.name, "slots": intent.slots}
+            if reply and self.lang == "hi":
+                reply = localize(reply)
+            return {"reply": reply, "intent": intent.name, "slots": intent.slots, "lang": self.lang}
 
     # ------------------------------------------------------------------ intents
     async def dispatch(self, it: Intent, source: str) -> str:
