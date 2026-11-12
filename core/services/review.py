@@ -30,6 +30,7 @@ def trades(desk) -> list[dict]:
     fills = db.query("SELECT * FROM fills ORDER BY id")
     entries = {o["id"]: o for o in db.query("SELECT * FROM orders WHERE leg='entry'")}
     exit_orders = {o["id"]: o for o in db.query("SELECT * FROM orders WHERE side='sell'")}
+    tags = {t["order_id"]: t for t in db.query("SELECT * FROM order_tags")}
     open_by_sym: dict[str, list[dict]] = {}
     out = []
     for f in fills:
@@ -72,6 +73,9 @@ def trades(desk) -> list[dict]:
             "left_on_table_r": round(mfe - r, 2) if mfe is not None and r is not None else None,
             "efficiency": round(r / mfe * 100) if r is not None and mfe and mfe > 0 and r > 0 else None,
             "verdict": verdict,
+            "mood": (tags.get(e["order_id"]) or {}).get("mood"),
+            "confidence": (tags.get(e["order_id"]) or {}).get("confidence"),
+            "algo_id": (tags.get(e["order_id"]) or {}).get("algo_id"),
         })
     return out
 
@@ -106,11 +110,25 @@ def charges(desk) -> dict:
             "turnover": round(turnover, 2), "bps_of_turnover": round(total / turnover * 1e4, 2) if turnover else 0.0}
 
 
+def by_mood(t: list[dict]) -> list[dict]:
+    """P&L grouped by the mood the trader checked in with before the entry."""
+    groups: dict[str, list[dict]] = {}
+    for x in t:
+        groups.setdefault(x.get("mood") or "not recorded", []).append(x)
+    out = []
+    for mood, xs in groups.items():
+        rs = [x["r"] for x in xs if x["r"] is not None]
+        out.append({"mood": mood, "trades": len(xs), "net": round(sum(x["net"] for x in xs), 2),
+                    "win_rate": round(sum(1 for x in xs if x["net"] > 0) / len(xs) * 100),
+                    "avg_r": round(sum(rs) / len(rs), 2) if rs else None})
+    return sorted(out, key=lambda g: -g["trades"])
+
+
 def summary(desk) -> dict:
     t = trades(desk)
     rs = [x["r"] for x in t if x["r"] is not None]
     wins = [x for x in t if x["net"] > 0]
-    return {"trades": t, "charges": charges(desk), "count": len(t), "wins": len(wins), "losses": len(t) - len(wins),
+    return {"trades": t, "charges": charges(desk), "by_mood": by_mood(t), "count": len(t), "wins": len(wins), "losses": len(t) - len(wins),
             "win_rate": round(len(wins) / len(t) * 100) if t else None, "net": round(sum(x["net"] for x in t), 2),
             "avg_r": round(sum(rs) / len(rs), 2) if rs else None,
             "avg_mfe_r": round(sum(x["mfe_r"] for x in t if x["mfe_r"] is not None) / max(1, len(t)), 2) if t else None,

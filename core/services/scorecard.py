@@ -53,7 +53,9 @@ def build(desk) -> dict:
         risk = 0
 
     # 3 · patience: blocks and skips accepted; every attempt to loosen limits or push a vague "yes" costs points
-    impulses = len(loosen) + (rejected_yes or {}).get("n", 0)
+    tilt_hits = sum(1 for e in (getattr(desk, "tilt", None).events if getattr(desk, "tilt", None) else [])
+                    if e["level"] == "cooldown")
+    impulses = len(loosen) + (rejected_yes or {}).get("n", 0) + tilt_hits
     patience = 100 - impulses * 12 + min(len(blocks) + len(skips), 5) * 2
 
     # 4 · explainability: every trade, skip, block and halt has a Story (validator-checked or template)
@@ -75,7 +77,7 @@ def build(desk) -> dict:
                            f"{ru['trades_used']} of {ru['max_trades']} trades used"},
         "patience": {"score": _clamp(patience), "label": "Patience",
                      "detail": f"{len(blocks)} block(s) and {len(skips)} skip(s) accepted; {len(loosen)} attempt(s) to loosen "
-                               f"limits, {(rejected_yes or {}).get('n', 0)} vague confirmation(s)"},
+                               f"limits, {(rejected_yes or {}).get('n', 0)} vague confirmation(s), {tilt_hits} tilt cool-down(s)"},
         "explain": {"score": _clamp(explain), "label": "Every decision explained",
                     "detail": f"{decisions} decision(s), {decisions} Story(ies) written"},
         "outcome": {"score": _clamp(outcome), "label": "Outcome in R",
@@ -84,7 +86,11 @@ def build(desk) -> dict:
     }
     weights = {"plan": 0.25, "risk": 0.25, "patience": 0.2, "explain": 0.15, "outcome": 0.15}
     overall = _clamp(sum(pillars[k]["score"] * w for k, w in weights.items()))
+    from .review import by_mood, trades as closed_trades
+    tilt_events = getattr(desk, "tilt", None).events if getattr(desk, "tilt", None) else []
     return {
+        "by_mood": by_mood(closed_trades(desk)),
+        "tilt": {"events": len(tilt_events), "cooldowns": sum(1 for e in tilt_events if e["level"] == "cooldown")},
         "score": overall, "grade": grade(overall), "pillars": pillars, "weights": weights,
         "counts": {"trades": len(trades), "closed": len(closed), "blocks": len(blocks), "skips": len(skips),
                    "halts": len(halts), "loosen_attempts": len(loosen), "denials": len(deny),
