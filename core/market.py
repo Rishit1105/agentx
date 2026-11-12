@@ -118,7 +118,9 @@ class Market:
         self.dir: Path | None = None
         self.session: dict[str, list[dict]] = {}
         self.meta: dict[str, dict] = {}
-        self.history: dict[str, list[list[dict]]] = {}
+        self.history: dict[str, list[list[dict]]] = {}   # lazily filled cache (see _replay_history)
+        self._files: dict = {}
+        self._prev_close: dict[str, float | None] = {}
         self.names: dict[str, str] = {}
         self.industries: dict[str, str] = {}
         self.synthetic_from: dict[str, str] = {}
@@ -135,6 +137,7 @@ class Market:
         except (OSError, ValueError):
             man = {}
         self.session, self.history, self.meta, self.filled = {}, {}, {}, {}
+        self._files, self._prev_close = {}, {}
         for f in sorted((FIXTURES / "charts60").glob("*.json.gz")):
             sym = f.name[: -len(".json.gz")]
             try:
@@ -150,9 +153,12 @@ class Market:
                 continue
             self.session[sym] = today
             self.filled[sym] = sum(1 for b in today if b.get("filled"))
-            self.history[sym] = [fill_session(d, s) for d, s in sorted(days.items()) if d < date and len(s) >= 60]
+            # history (60 past sessions) is loaded lazily per symbol: holding it for all ~500 symbols needs >500 MB
+            past = [d for d in sorted(days) if d < date and len(days[d]) >= 60]
+            self._files[sym] = f
+            self._prev_close[sym] = days[past[-1]][-1]["c"] if past else None
             m = doc["chart"]["result"][0]["meta"]
-            self.meta[sym] = m
+            self.meta[sym] = {k: m.get(k) for k in ("chartPreviousClose", "previousClose", "symbol", "currency")}
         if "NIFTY50" in self.session:
             self.names.setdefault("NIFTY50", "NIFTY 50 index")
         return {"date": date, "symbols": len(self.session), "synthetic_from": None, "market": "NSE",
@@ -208,6 +214,8 @@ class Market:
 
     def prev_close(self, sym: str) -> float | None:
         sym = sym.upper()
+        if self._prev_close.get(sym) is not None:
+            return self._prev_close[sym]
         h = self.history.get(sym)
         if h:
             return h[-1][-1]["c"]
@@ -250,7 +258,7 @@ class Market:
     # ------------------------------------------------------------------ history (backtests)
     def sessions_5m(self, sym: str, n: int = 60) -> list[list[dict]]:
         sym = sym.upper()
-        hist = self.history.get(sym) if sym in self.history else self._live_history(sym)
+        hist = self._replay_history(sym) if sym in self._files else self._live_history(sym)
         return (hist or [])[-n:]
 
     def daily_closes(self, sym: str, start: str, end: str) -> list[tuple[str, float]] | None:
@@ -293,6 +301,20 @@ class Market:
             return fill_session(today, days.get(today, []), upto=min(SESSION_BARS, max(0, slot_of(int(time.time())) + 1)))
         except Exception:
             return []
+
+    def _replay_history(self, sym: str) -> list[list[dict]]:
+        """Past sessions for one symbol, read from its fixture on demand; a small cache keeps the last 24 used."""
+        if sym in self.history:
+            return self.history[sym]
+        try:
+            days = by_session(chart_to_bars(_read(self._files[sym])))
+        except Exception:
+            return []
+        hist = [fill_session(d, s) for d, s in sorted(days.items()) if d < self.date and len(s) >= 60]
+        if len(self.history) >= 24:
+            self.history.pop(next(iter(self.history)))
+        self.history[sym] = hist
+        return hist
 
     def _live_history(self, sym: str) -> list[list[dict]]:
         try:
