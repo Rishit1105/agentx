@@ -45,6 +45,19 @@ def registry(cfg: dict) -> list[dict]:
              "params_hash": _hash({**params, **limits}), "status": "registered (paper)"} for k, aid, label, params in base]
 
 
+def registry_with_custom(desk) -> list[dict]:
+    """Built-in algos plus custom strategies approved through the strategy builder (they passed the edge gate)."""
+    out = registry(desk.cfg)
+    try:
+        for r in desk.db.query("SELECT * FROM custom_strategies WHERE algo_id IS NOT NULL ORDER BY algo_id"):
+            spec = json.loads(r["spec"])
+            out.append({"strategy": r["id"], "algo_id": r["algo_id"], "label": r["name"], "version": "1.0", "params": spec,
+                        "params_hash": _hash(spec), "status": r["status"]})
+    except Exception:
+        pass
+    return out
+
+
 class Compliance:
     def __init__(self, desk):
         self.desk = desk
@@ -99,7 +112,7 @@ class Compliance:
         logouts = self.db.query("SELECT vclock FROM compliance_log WHERE kind='session.logout' ORDER BY id DESC LIMIT 5")
         verify = self.desk.audit.verify()
         algo = [t for t in tags if t["algo_id"] != "MANUAL"]
-        return {"client_id": CLIENT_ID, "registry": registry(self.desk.cfg), "orders": tags,
+        return {"client_id": CLIENT_ID, "registry": registry_with_custom(self.desk), "orders": tags,
                 "algo_orders": len(algo), "manual_orders": len(tags) - len(algo),
                 "untagged_algo_orders": sum(1 for t in algo if t["algo_id"] == "MRD-UNREGISTERED"),
                 "api_activity": {r["method"]: r["n"] for r in api}, "kill_events": kills, "logouts": logouts,
