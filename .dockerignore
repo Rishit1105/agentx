@@ -1,0 +1,14 @@
+.git
+.venv
+web
+zerodha-clone
+voice-tts
+vendor/OmniVoice
+vendor/day-trader-skill
+tests
+docs
+*.db
+*.db-shm
+*.db-wal
+trader
+**/__pycache__
