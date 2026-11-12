@@ -111,6 +111,37 @@ best one"*, *"at 3 pm give me a status update"*, *"if I'm down 5000 lock the des
   gainers and losers, drill-down to stocks. Ask *"how are sectors doing?"*.
 * Bulk and block deals, quarterly fundamentals, and news headlines on demand.
 
+### Behaviour guardrails (new)
+* **Tilt guard:** before every entry Meridian checks for revenge re-entry (the same stock within 30 min of a loss on it,
+  or any entry within 10 min of a stop-out), size escalation (risk over 1.5x the session average), loss-chasing (the day
+  past half the loss limit) and losing streaks. One signal warns on the ticket; a revenge pattern or two signals start a
+  15-minute cool-down. Exits are never blocked. *"Am I on tilt?"*
+* **Mood check-in:** before you say yes, the ticket asks how you feel (calm, confident, anxious, FOMO, revenge, bored)
+  and your confidence 1–5. A self-reported "revenge" cancels the ticket. Trade Review shows P&L by mood.
+
+### Compliance (new)
+* **SEBI-style algo mode**, modelled on SEBI's retail algo framework (circular of 4 Feb 2025): every autopilot order
+  carries a registered algo ID (MRD-ORB-01, MRD-LVL-01, MRD-BNC-01, or an approved custom MRD-CUS-NN) and a client ID;
+  manual orders are tagged MANUAL. Every state-changing API call goes to a compliance log, a new trading day revokes any
+  autopilot Mandate, and Guardrails exports a compliance report PDF. *"Compliance report."*
+
+### Strategy Lab, options and imports (new)
+* **Strategy Lab** (`/lab`): describe a rule in plain English (*"buy when price closes above the 20-day high with volume
+  over 1.5x, stop 1.5 ATR, target 2R"*). A deterministic parser turns it into a spec, it is backtested on 60 real
+  sessions with Indian charges against buy-and-hold, and it can be approved (and registered with an algo ID) only if it
+  passes the edge gate.
+* **Options desk** (`/options`): paper, defined-risk strategies (long call/put, bull call and bear put spreads, long
+  straddle, iron condor) with a payoff chart, breakevens, chance of profit, greeks and a Risk-gate verdict against the
+  same ₹2,500 per-trade limit. Premiums are modelled with Black-Scholes on realised volatility, not a live chain.
+* **Read-only holdings import** (My Portfolio): drop a holdings CSV exported from your broker (Zerodha Console format
+  works) for value, concentration and sector exposure. No login, no credentials, no order path.
+
+### Hindi and Hinglish (new)
+* *"Zomato mein trade plan karo"*, *"haan, 482 ETERNAL khareedo"*, *"sab band karo"*, *"bazaar kaisa hai"*: Hindi and
+  Hinglish (romanised or Devanagari) map onto the same grammar, so the safety rules are identical in both languages, and
+  replies come back in Hindi through a hi-IN voice. For Hindi speech recognition set `STT_MODEL=small` and
+  `STT_LANGUAGE=hi`.
+
 ### Experience
 * A landing page with a 3D Conductor orb, a scroll-driven product demo, a recorded walkthrough of the real desk, themed
   explainer videos, a live risk dial, a Time Machine fan and a hash-chain ledger, ending in a zoom transition into the desk.
@@ -257,12 +288,14 @@ Then open **Review** for the post-mortem and PDF, and **Ledger** for the Discipl
 | `/deck` | Command Deck: Orb, agent Orrery, Sundial, sector heatmap, risk reservoir, ticket, chat |
 | `/markets` | NIFTY 500 sector heatmap, breadth, movers |
 | `/studio` | Trade Studio: candles, lifecycle stepper, Time Machine fan, What-if simulator, sizing, risk gate |
+| `/lab` | Strategy Lab: plain-English rules, honest backtests, approval only on a pass |
+| `/options` | Paper options desk: payoff, breakevens, chance of profit, risk-gate verdict |
 | `/backtest` | Backtest Lab: strategy vs buy-and-hold vs NIFTY 50, PDF export |
-| `/portfolio` | Paper positions, P&L, fills |
+| `/portfolio` | Paper positions, P&L, fills, read-only broker holdings import |
 | `/review` | Trade Review: MAE/MFE post-mortem, charges, end-of-day PDF |
 | `/ledger` | Discipline Scorecard and every Story with its evidence |
 | `/automations` | Rule builder, templates, voice rules, activity log |
-| `/guardrails` | Limits, five layers, kill switch, audit-chain verification |
+| `/guardrails` | Limits, five layers, kill switch, audit-chain verification, algo compliance, tilt guard |
 
 Keyboard: `1`–`9` switch screens, `⌘K` opens the palette, `Space` is push-to-talk, `Esc Esc` halts.
 
@@ -287,7 +320,7 @@ tightened from the UI or by voice.
 ## Testing
 
 ```bash
-.venv/bin/python -m pytest                       # 93 unit and contract tests
+.venv/bin/python -m pytest                       # 117 unit and contract tests
 .venv/bin/python scripts/e2e_replay.py            # 25-check acceptance run against a running core
 python3 -m unittest discover -s vendor/day-trader-skill/tests   # 315 upstream tests
 ```
@@ -327,6 +360,8 @@ docs/                    feature catalogue, API reference, frontend research
 * [docs/FEATURES.md](docs/FEATURES.md): every voice command, automation and screen
 * [docs/API.md](docs/API.md): the REST and WebSocket API
 * [docs/frontend-research.md](docs/frontend-research.md): design research and the build list behind the UI
+* [docs/DEPLOY.md](docs/DEPLOY.md): deploying the frontend to Vercel and the core to Render, Railway or Fly.io
+* [docs/pitch-deck-content.md](docs/pitch-deck-content.md): the six-slide pitch deck, slide by slide
 * [vendor/day-trader-skill-in/INDIA_EDITION.md](vendor/day-trader-skill-in/INDIA_EDITION.md): the India edition patches
 
 ## Credits, data and disclaimer

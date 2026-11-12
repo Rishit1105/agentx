@@ -37,6 +37,27 @@ reach a language model.
 | "Raise my daily loss limit" | Refused by the Policy engine, spoken back with the reason |
 | "Stop everything" / "Halt" | Kill switch: cancel orders, flatten, lock entries, write a Kill Story |
 
+## Behaviour, compliance and labs
+
+| Say | What happens |
+| --- | --- |
+| "I'm calm, confidence 4" / "feeling FOMO" | Mood check-in on the waiting ticket; "revenge" cancels it and pauses entries |
+| "Am I on tilt?" | Tilt guard status: cool-down left, or the last signals |
+| "Compliance report" | Algo vs manual orders, every check, and where the PDF is |
+| "Build a strategy: buy when price closes above the 20-day high, stop 1.5 ATR, target 2R" | Parses, backtests and gives the edge-gate verdict |
+| "Show me an iron condor on NIFTY" | Paper options analysis with payoff, chance of profit and risk gate |
+
+## Hindi / Hinglish
+
+| Say | Same as |
+| --- | --- |
+| "Zomato mein trade plan karo" | "Plan a trade on Zomato" |
+| "haan, 482 ETERNAL khareedo" / "हाँ 482 ETERNAL खरीदो" | "Yes, buy 482 ETERNAL" |
+| "sab band karo" / "सब बंद करो" | "Stop everything" (halt) |
+| "breakouts scan karo" | "Scan for breakouts" |
+| "agar main 300 infosys khareedu to?" | "What if I buy 300 Infosys?" |
+| "suprabhat" / "bazaar kaisa hai" | Briefing |
+
 ## Automations
 
 | Say | Rule created |
@@ -60,6 +81,8 @@ place an order and never replace a ticket that is waiting for your "yes".
 | `/deck` | Command Deck: Orb, agent Orrery, Sundial, sector heatmap, risk reservoir, ticket, breakeven button, chat |
 | `/markets` | NIFTY 500 sector heatmap, breadth, top gainers and losers |
 | `/studio` | Trade Studio: candles, Time Machine fan, What-if simulator, sizing ledger, gate list, ticket |
+| `/lab` | Strategy Lab |
+| `/options` | Paper options desk |
 | `/backtest` | Backtest Lab and PDF export |
 | `/portfolio` | Paper positions and P&L |
 | `/review` | Trade Review: MAE/MFE post-mortem, charges breakdown, end-of-day PDF |

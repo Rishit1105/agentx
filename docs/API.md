@@ -35,6 +35,19 @@ the `x-meridian-token` header. Live events stream over `ws://localhost:8000/ws`.
 | GET/POST | `/api/backtest/{symbol}` | | run or fetch a backtest |
 | GET | `/api/report/{symbol}.pdf` | | backtest report PDF |
 
+## Behaviour, compliance, labs
+| Method | Path | Body / query | Does |
+| --- | --- | --- | --- |
+| POST | `/api/ticket/mood` | `{mood, confidence}` | pre-entry check-in on the waiting ticket |
+| GET | `/api/tilt` | | tilt cool-down and recent signals |
+| GET | `/api/compliance` | | algo registry, tagged orders, API activity, checks |
+| GET | `/api/report/compliance.pdf` | | compliance report PDF |
+| GET | `/api/strategies` | | saved custom rules and examples |
+| POST | `/api/strategies/test` | `{text, symbol?, name?}` | parse and backtest a plain-English rule |
+| POST | `/api/strategies/{id}/approve` | | approve a rule that passed the edge gate |
+| GET | `/api/options` | `symbol, strategy, days, lots, width, lot_size?` | paper options analysis |
+| GET/POST/DELETE | `/api/holdings/imported`, `/api/holdings/import` | `{text}` (CSV or JSON) | read-only holdings import |
+
 ## Automations
 | Method | Path | Body |
 | --- | --- | --- |
