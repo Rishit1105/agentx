@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import axios from "axios";
@@ -10,6 +10,17 @@ import "./BuyActionWindow.css";
 const BuyActionWindow = ({ uid }) => {
   const [stockQuantity, setStockQuantity] = useState(1);
   const [stockPrice, setStockPrice] = useState(0.0);
+
+  // pre-fill the live last-traded price (from Meridian's replay feed) when we have one
+  useEffect(() => {
+    axios
+      .get("http://localhost:3002/prices")
+      .then((r) => {
+        const p = r.data && r.data[uid];
+        if (p && p.ltp > 0) setStockPrice(p.ltp);
+      })
+      .catch(() => {});
+  }, [uid]);
 
   const handleBuyClick = () => {
     axios.post("http://localhost:3002/newOrder", {

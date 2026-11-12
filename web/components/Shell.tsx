@@ -27,7 +27,7 @@ const NAV = [
   { href: "/automations", label: "Automations", short: "Auto", icon: Workflow, key: "8", screen: "automations" },
   { href: "/guardrails", label: "Guardrails", short: "Guard", icon: Shield, key: "9", screen: "guardrails" },
 ];
-const KITE_URL = process.env.NEXT_PUBLIC_KITE_URL || "http://localhost:3001";
+import { KITE_URL } from "@/lib/kite";
 const SPLIT_KEY = "meridian.split";
 const readSplit = () => { try { return localStorage.getItem(SPLIT_KEY) === "1"; } catch { return false; } };
 
@@ -289,6 +289,12 @@ function Desk({ children }: { children: React.ReactNode }) {
   const st = useM((s) => s.st);
   const [split, setSplit] = useState(false);
   useEffect(() => { setSplit(readSplit()); }, []);
+  const [kiteSrc, setKiteSrc] = useState(`${KITE_URL}/positions`);
+  useEffect(() => {   // "Add <stock>" on the deck points the split pane at Kite
+    const h = (e: Event) => { const u = (e as CustomEvent).detail?.url; if (u) setKiteSrc(u + (u.includes("?") ? "&" : "?") + "t=" + Date.now()); };
+    window.addEventListener("meridian-kite", h);
+    return () => window.removeEventListener("meridian-kite", h);
+  }, []);
   useEffect(() => { api.get("/api/state").then((s) => useM.getState().set({ st: s })).catch(() => {}); }, []);
   return (
     <div className={clsx("relative z-10 flex flex-col h-dvh", kill === "LOCKED" && "halted-frame")}>
@@ -312,7 +318,7 @@ function Desk({ children }: { children: React.ReactNode }) {
               <span>Zerodha Kite (clone) · live</span>
               <a href={KITE_URL} target="_blank" rel="noreferrer" className="hover:text-cyan">open full ↗</a>
             </div>
-            <iframe title="Zerodha Kite" src={`${KITE_URL}/positions`} className="flex-1 w-full border-0" />
+            <iframe title="Zerodha Kite" src={kiteSrc} className="flex-1 w-full border-0" />
           </aside>
         )}
       </div>

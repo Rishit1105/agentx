@@ -9,6 +9,7 @@ const { HoldingsModel } = require("./model/HoldingsModel");
 
 const { PositionsModel } = require("./model/PositionsModel");
 const { OrdersModel } = require("./model/OrdersModel");
+const { WatchModel } = require("./model/WatchModel");
 
 const PORT = process.env.PORT || 3002;
 const uri = process.env.MONGO_URL;
@@ -195,6 +196,17 @@ app.get("/allHoldings", async (req, res) => {
 app.get("/allPositions", async (req, res) => {
   let allPositions = await PositionsModel.find({});
   res.json(allPositions);
+});
+
+app.get("/watchitems", async (req, res) => {
+  res.json((await WatchModel.find({}).sort({ addedAt: -1 })).map((w) => w.name));
+});
+
+app.post("/watchlist/add", async (req, res) => {
+  const name = String(req.body.name || "").toUpperCase().trim();
+  if (!/^[A-Z0-9&-]{1,20}$/.test(name)) return res.status(400).send("bad symbol");
+  await WatchModel.updateOne({ name }, { $setOnInsert: { name, addedAt: new Date() } }, { upsert: true });
+  res.send("added");
 });
 
 app.get("/allOrders", async (req, res) => {

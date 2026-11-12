@@ -22,14 +22,30 @@ const WatchList = () => {
   // live prices from Meridian's replay + any stock it is trading (shown first, tagged)
   const [live, setLive] = useState({});
   const [traded, setTraded] = useState([]);
+  const [added, setAdded] = useState([]);
+  const generalContext = useContext(GeneralContext);
   useEffect(() => {
     const load = () => {
       axios.get("http://localhost:3002/prices").then((r) => setLive(r.data || {})).catch(() => {});
       axios.get("http://localhost:3002/allPositions").then((r) => setTraded(r.data.map((p) => p.name))).catch(() => {});
+      axios.get("http://localhost:3002/watchitems").then((r) => setAdded(r.data)).catch(() => {});
     };
     load();
     const t = setInterval(load, 1500);
     return () => clearInterval(t);
+  }, []);
+  // arriving from Meridian's "Add <stock>" button (?add=SYMBOL): add it to the watchlist and open its Buy window
+  useEffect(() => {
+    const sym = new URLSearchParams(window.location.search).get("add");
+    if (!sym) return;
+    const name = sym.toUpperCase();
+    window.history.replaceState({}, "", window.location.pathname);
+    axios
+      .post("http://localhost:3002/watchlist/add", { name })
+      .then(() => axios.get("http://localhost:3002/watchitems").then((r) => setAdded(r.data)))
+      .catch(() => {})
+      .finally(() => setTimeout(() => generalContext.openBuyWindow(name), 900));
+    // eslint-disable-next-line
   }, []);
   const withLive = (s) => {
     const p = live[s.name];
@@ -38,7 +54,8 @@ const WatchList = () => {
   };
   const stocks = [
     ...traded.filter((n) => live[n]).map((n) => ({ ...withLive({ name: n }), meridian: true })),
-    ...watchlist.filter((s) => !traded.includes(s.name)).map(withLive),
+    ...added.filter((n) => !traded.includes(n)).map((n) => ({ ...withLive({ name: n, price: 0, percent: "0.00%" }), added: true })),
+    ...watchlist.filter((s) => !traded.includes(s.name) && !added.includes(s.name)).map(withLive),
   ];
   const data = {
     labels,
@@ -136,6 +153,11 @@ const WatchListItem = ({ stock }) => {
       <div className="item">
         <p className={stock.isDown ? "down" : "up"}>
           {stock.name}
+          {stock.added && (
+            <span style={{ marginLeft: 6, fontSize: 9, background: "#4caf50", color: "#fff", padding: "1px 5px", borderRadius: 3 }}>
+              ADDED
+            </span>
+          )}
           {stock.meridian && (
             <span style={{ marginLeft: 6, fontSize: 9, background: "#387ed1", color: "#fff", padding: "1px 5px", borderRadius: 3 }}>
               MERIDIAN

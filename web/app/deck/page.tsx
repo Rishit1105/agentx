@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowUpRight, Bot, Check, Clock3, Loader2, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowUpRight, Bot, Check, Clock3, Landmark, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 import clsx from "clsx";
 import Orb from "@/components/Orb";
 import Orrery from "@/components/Orrery";
@@ -13,6 +13,7 @@ import { api } from "@/lib/api";
 import { useSize, useStories } from "@/lib/hooks";
 import { fmt, useM } from "@/lib/store";
 import { ticketAction } from "@/lib/ticket";
+import { goToKite } from "@/lib/kite";
 import { mic, speaker } from "@/lib/voice";
 
 const STATE_LABEL: Record<string, string> = { idle: "Standing by", listening: "Listening", thinking: "Working", speaking: "Speaking",
@@ -84,6 +85,24 @@ function BreakevenButton({ symbol, atBreakeven }: { symbol: string; atBreakeven:
   );
 }
 
+/** "Add <STOCK>" -> Kite. The stock is the one with a ticket, else the one the agents are working on, else the scan's top pick. */
+function AddToKite() {
+  const ticket = useM((s) => s.st?.ticket?.symbol);
+  const piped = useM((s) => s.pipeline.symbol);
+  const top = useM((s) => (s.st?.last_scan?.hits?.[0]?.symbol as string | undefined));
+  const symbol = ticket || piped || top;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted || !symbol) return null;
+  return (
+    <div className="flex justify-center">
+      <button onClick={() => goToKite(symbol)} className="btn btn-mint !h-10 !px-5 gap-2" title={`Add ${symbol} to your Kite watchlist and open its Buy window`}>
+        <Landmark size={15} />Add {symbol}<ArrowUpRight size={14} />
+      </button>
+    </div>
+  );
+}
+
 export default function Deck() {
   const st = useM((s) => s.st);
   const voice = useM((s) => s.voice);
@@ -134,6 +153,7 @@ export default function Deck() {
           </div>
         </div>
         <div className="shrink-0 space-y-3 max-w-[820px] w-full mx-auto">
+          <AddToKite />
           <Pipeline />
           <CaptionRibbon />
           <CommandBar />
