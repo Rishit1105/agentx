@@ -7,6 +7,7 @@ import clsx from "clsx";
 import Orb from "@/components/Orb";
 import Orrery from "@/components/Orrery";
 import SectorHeatmap from "@/components/SectorHeatmap";
+import TicketCheckIn from "@/components/TicketCheckIn";
 import { CaptionRibbon, CommandBar, PriceLadder, RiskReservoir, Sundial } from "@/components/Instruments";
 import { api } from "@/lib/api";
 import { useSize, useStories } from "@/lib/hooks";
@@ -51,6 +52,7 @@ function TicketCard() {
       </div>
       <div className="text-[12px] text-ink-2 mt-3">Max loss <span className="num text-ink">{fmt.usd(t.max_loss)}</span> · stop can fill worse in a fast market.</div>
       <div className="text-[11.5px] text-amber/90 mt-1">{t.tm_verdict}</div>
+      <TicketCheckIn t={t} />
       <div className="flex gap-2 mt-4">
         <button className="btn btn-mint flex-1" onClick={() => ticketAction(t.index, "approve")}>“{t.say}”</button>
         <button className="btn" onClick={() => ticketAction(t.index, "decline")}>No</button>

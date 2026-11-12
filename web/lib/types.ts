@@ -17,7 +17,9 @@ export interface Ticket { symbol: string; index: number; plain: string; tool_inp
   qty: number; entry: number; stop: number; target: number; risk_per_share: number; max_loss: number; reward_risk: number;
   value: number; strategy: string; strategy_label: string; tm_verdict: string; odds: { target?: number; stop?: number; open?: number };
   bt_verdict: string; risk_info: string[]; sizing_limits: { name: string; usd: number; per: number; shares: number; how: string;
-  binds: boolean }[]; bound_by: string; flat_by: string; created: string; mode: Mode; say: string; window_s: number }
+  binds: boolean }[]; bound_by: string; flat_by: string; created: string; mode: Mode; say: string; window_s: number;
+  tilt?: { level: string; signals: { kind: string; text: string; severe: boolean }[] } | null; mood?: string | null;
+  confidence?: number | null; moods?: string[]; algo_id?: string }
 export interface Mandate { id: string; granted_ts: string; expires_ts: string; max_trades: number; used: number; status: string;
   scope: { strategies: string[]; symbols: string | string[]; max_loss_per_trade: number } }
 export interface Story { id: string; ts: string; vclock: string; kind: string; symbol: string | null; headline: string; why: string;
